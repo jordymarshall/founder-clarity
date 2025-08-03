@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Copy } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CanvasSection {
   id: string;
@@ -15,6 +17,8 @@ interface InvestigationCanvasProps {
 }
 
 export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) {
+  const [showScript, setShowScript] = useState(false);
+  const { toast } = useToast();
   const [sections, setSections] = useState<CanvasSection[]>([
     {
       id: 'customer-segment',
@@ -45,8 +49,116 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
   };
 
   const handleGenerateScript = () => {
-    console.log('Generate interview script');
-    // Navigate to Interview Script
+    setShowScript(true);
+  };
+
+  const generateInterviewScript = () => {
+    const customerSegment = sections.find(s => s.id === 'customer-segment')?.content || '';
+    const problem = sections.find(s => s.id === 'problem')?.content || '';
+    const currentSolutions = sections.find(s => s.id === 'current-solutions')?.content || '';
+    
+    return `# Customer Problem Discovery Interview Script
+
+## Pre-Interview Setup
+**Duration:** 30-45 minutes
+**Goal:** Understand the customer's real-world experience and validate our problem hypothesis
+
+## 1. Frame the Encounter (2-3 minutes)
+
+"Thank you for taking the time to speak with me today. I want to be completely transparent about why we're talking. I'm doing research to understand how people like yourself currently handle [the problem area]. This is purely research - I'm not here to pitch or sell you anything. I'm genuinely interested in learning from your experience, and there are no wrong answers. Does that sound good?"
+
+## 2. Establish the Anchor (5 minutes)
+
+**Goal:** Ground the conversation in specific, recent behavior
+
+"To help me understand your world, could you tell me what you're currently using or doing to ${problem.toLowerCase().replace(/\.$/, '')}?"
+
+**Listen for:** Their current solution (existing alternative)
+**Follow-up:** "When did you start using [their solution]?" / "Can you remember roughly when that was?"
+
+## 3. Reconstruct the Backstory (10-15 minutes)
+
+**Goal:** Work backward to find their switching trigger
+
+"Can you take me back to the time *before* you started using [their current solution]?"
+
+**Hunt for the Switching Trigger:**
+- "When was the first time you realized you needed a new approach?"
+- "What prompted you to look for a solution?"
+- "Do you remember what was happening in your business/life at that time?"
+
+**Quantify What's at Stake:**
+- "What would have happened if you had done nothing?"
+- "What were you worried about?"
+
+**Explore Consideration Set:**
+- "What other options did you consider?"
+- "How did you evaluate your choices?"
+
+## 4. Explore the Experience (10-15 minutes)
+
+**Goal:** Find friction points in their current process
+
+"Can you walk me through how you typically use [their current solution]?"
+
+**Listen for friction points:**
+- Steps that seem cumbersome
+- Workarounds they've created
+- Things that take longer than expected
+- Frustrations or pet peeves
+
+**Measure the gap:**
+- "When you first started, what were you hoping to achieve?"
+- "How has [their solution] lived up to those expectations?"
+- "What's working well? What's not working as well as you'd hoped?"
+
+## 5. Conclude and Open the Door (2-3 minutes)
+
+"This has been incredibly helpful. Based on what you've shared, I'm exploring the idea of ${sections.find(s => s.id === 'hypothesis')?.content?.toLowerCase() || 'a solution that addresses these challenges'}. 
+
+Would it be okay if I followed up with you as this develops? And do you know anyone else in your network who might have similar experiences and would be willing to share their perspective?"
+
+## Post-Interview Action Items
+
+1. **Immediately debrief** (within 15 minutes):
+   - Fill out Customer Forces Canvas
+   - Note key quotes and friction points
+   - Identify patterns compared to previous interviews
+
+2. **Look for patterns across interviews:**
+   - Common switching triggers
+   - Shared friction points  
+   - Similar existing alternatives
+   - Recurring desired outcomes
+
+## Key Questions Bank
+
+**For deeper exploration:**
+- "Help me understand what you mean by [their term]"
+- "Can you give me a specific example?"
+- "Walk me through that process step by step"
+- "How did that make you feel?"
+- "What did you do next?"
+- "Who else was involved in that decision?"
+
+**Remember:** Stay curious, listen more than you talk, and dig into specific stories rather than general opinions.`;
+  };
+
+  const handleCopyScript = async () => {
+    const script = generateInterviewScript();
+    try {
+      await navigator.clipboard.writeText(script);
+      toast({
+        title: "Interview script copied!",
+        description: "The script has been copied to your clipboard.",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Please copy the script manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -99,6 +211,31 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
           </div>
         </div>
       </div>
+
+      {/* Interview Script Dialog */}
+      <Dialog open={showScript} onOpenChange={setShowScript}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              Customer Discovery Interview Script
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyScript}
+                className="flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copy Script
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono bg-muted p-4 rounded-lg">
+              {generateInterviewScript()}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
