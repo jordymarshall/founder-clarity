@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Copy, X, ChevronLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Copy, X, ChevronLeft, Globe, Mail, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Activity {
@@ -17,9 +18,17 @@ interface Prospect {
   id: string;
   name: string;
   source: string;
-  status: 'identified' | 'contacted' | 'scheduled' | 'completed';
+  status: 'enriching' | 'identified' | 'contacted' | 'scheduled' | 'completed';
   contactedDate?: Date;
   activities: Activity[];
+  // AI-enriched data
+  company?: string;
+  jobTitle?: string;
+  email?: string;
+  fitScore?: 'strong' | 'moderate' | 'weak';
+  aiSummary?: string;
+  evidenceOfStruggle?: string;
+  evidenceSource?: string;
 }
 
 interface InvestigationCanvasProps {
@@ -33,9 +42,16 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
     {
       id: '1',
       name: 'Maria Rodriguez',
-      source: 'The Daily Grind',
+      source: 'linkedin.com/in/maria-rodriguez',
       status: 'identified',
-      activities: []
+      activities: [],
+      company: 'The Daily Grind',
+      jobTitle: 'Owner',
+      email: 'maria@thedailygrind.com',
+      fitScore: 'strong',
+      aiSummary: 'Maria Rodriguez, owner of The Daily Grind, fits your Customer Segment: Small, independent coffee shop owners. Recent blog posts indicate a focus on community events, suggesting a potential struggle with attracting new, regular customers.',
+      evidenceOfStruggle: "Company blog post from July 15, 2025, titled 'Our New Fall Events Lineup' shows investment in non-digital marketing efforts to solve the JTBD.",
+      evidenceSource: 'Blog post: Our New Fall Events Lineup'
     },
     {
       id: '2',
@@ -50,7 +66,14 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
           message: 'You contacted David Chen',
           timestamp: new Date('2025-07-28')
         }
-      ]
+      ],
+      company: 'Corner Coffee Co.',
+      jobTitle: 'Founder',
+      email: 'david@cornercoffee.com',
+      fitScore: 'moderate',
+      aiSummary: 'David Chen founded Corner Coffee Co. 2 years ago. Shows some alignment with customer segment but limited evidence of current struggle.',
+      evidenceOfStruggle: 'Recent LinkedIn post about hiring challenges suggests focus on operations rather than customer acquisition.',
+      evidenceSource: 'LinkedIn post: Hiring Update'
     },
     {
       id: '3',
@@ -65,7 +88,14 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
           message: 'You contacted Sarah Jenkins',
           timestamp: new Date('2025-08-01')
         }
-      ]
+      ],
+      company: 'Roasted Dreams',
+      jobTitle: 'Co-owner',
+      email: 'sarah@roasteddreams.cafe',
+      fitScore: 'strong',
+      aiSummary: 'Sarah Jenkins co-owns Roasted Dreams, a 18-month-old coffee shop. Perfect fit for customer segment with clear evidence of JTBD struggle.',
+      evidenceOfStruggle: 'Recent Yelp reviews mention slow business during weekdays. Owner actively seeking marketing solutions.',
+      evidenceSource: 'Yelp business profile analysis'
     }
   ]);
   
@@ -105,17 +135,62 @@ export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [prospects, focusedIndex, selectedProspectId]);
 
+  const [urlInput, setUrlInput] = useState('');
+  const [showUrlInput, setShowUrlInput] = useState(false);
+
   const addProspect = () => {
+    setShowUrlInput(true);
+  };
+
+  const enrichProspectFromUrl = async (url: string) => {
+    if (!url.trim()) return;
+    
     const newProspect: Prospect = {
       id: Date.now().toString(),
-      name: '',
-      source: '',
-      status: 'identified',
+      name: 'Enriching...',
+      source: url,
+      status: 'enriching',
       activities: []
     };
+    
     setProspects(prev => [newProspect, ...prev]);
     setFocusedIndex(0);
-    setEditingProspect(newProspect.id);
+    setUrlInput('');
+    setShowUrlInput(false);
+    
+    // Simulate AI enrichment (replace with actual API calls)
+    setTimeout(() => {
+      const enrichedData = mockEnrichProspect(url);
+      setProspects(prev => prev.map(p => 
+        p.id === newProspect.id ? { ...p, ...enrichedData, status: 'identified' } : p
+      ));
+    }, 2000);
+  };
+
+  const mockEnrichProspect = (url: string): Partial<Prospect> => {
+    // Mock AI-enriched data - replace with actual API integration
+    if (url.includes('linkedin')) {
+      return {
+        name: 'Maria Rodriguez',
+        company: 'The Daily Grind',
+        jobTitle: 'Owner',
+        email: 'maria@thedailygrind.com',
+        fitScore: 'strong',
+        aiSummary: 'Maria Rodriguez, owner of The Daily Grind, fits your Customer Segment: Small, independent coffee shop owners. Recent blog posts indicate a focus on community events, suggesting a potential struggle with attracting new, regular customers.',
+        evidenceOfStruggle: "Company blog post from July 15, 2025, titled 'Our New Fall Events Lineup' shows investment in non-digital marketing efforts to solve the JTBD.",
+        evidenceSource: 'Blog post: Our New Fall Events Lineup'
+      };
+    }
+    
+    return {
+      name: 'Extracted Contact',
+      company: 'Company Name',
+      jobTitle: 'Position',
+      fitScore: 'moderate',
+      aiSummary: 'AI-generated prospect summary based on URL analysis.',
+      evidenceOfStruggle: 'Evidence of struggle based on content analysis.',
+      evidenceSource: 'Website content analysis'
+    };
   };
 
   const updateProspect = (id: string, field: keyof Prospect, value: any) => {
@@ -201,6 +276,27 @@ Best,
 [Your Name]`;
   };
 
+  const generatePersonalizedOutreach = (prospect: Prospect) => {
+    if (prospect.evidenceSource) {
+      return `Subject: Research into the world of ${customerSegment}
+
+Hi ${prospect.name},
+
+I saw your recent ${prospect.evidenceSource.toLowerCase()} - ${prospect.evidenceOfStruggle?.split('.')[0]}. It's great to see how you're thinking about ${jtbd.toLowerCase()}.
+
+My name is [Your Name], and I'm currently researching how ${customerSegment}s approach ${jtbd}. Your experience with ${prospect.company || 'your business'} would provide valuable insights.
+
+My goal is simply to learn from people with firsthand experience like you. This is not a sales pitch.
+
+Would you be open to a 30-minute chat in the next week to share your perspective? As a thank you, I can offer a $50 gift card.
+
+Best,
+[Your Name]`;
+    }
+    
+    return generateOutreachTemplate(prospect.name);
+  };
+
   const getStatusColor = (status: Prospect['status']) => {
     switch (status) {
       case 'identified': return 'text-muted-foreground';
@@ -253,8 +349,9 @@ Best,
           <div className={`transition-all duration-300 ${selectedProspectId ? 'w-1/2 opacity-75' : 'w-full'}`}>
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-3 mb-2">
+              <div className="col-span-1">FIT</div>
               <div className="col-span-4">PROSPECT</div>
-              <div className="col-span-3">STATUS</div>
+              <div className="col-span-2">STATUS</div>
               <div className="col-span-3">CONTACTED</div>
               <div className="col-span-2">SOURCE</div>
             </div>
@@ -269,6 +366,16 @@ Best,
                   } ${selectedProspectId === prospect.id ? 'bg-primary/10' : ''}`}
                   onClick={() => setSelectedProspectId(prospect.id)}
                 >
+                  <div className="col-span-1 flex items-center">
+                    {prospect.fitScore && prospect.status !== 'enriching' ? (
+                      <div className={`w-2 h-2 rounded-full ${
+                        prospect.fitScore === 'strong' ? 'bg-green-500' :
+                        prospect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} />
+                    ) : prospect.status === 'enriching' ? (
+                      <div className="w-2 h-2 rounded-full bg-muted animate-pulse" />
+                    ) : null}
+                  </div>
                   <div className="col-span-4">
                     {editingProspect === prospect.id ? (
                       <Input
@@ -286,7 +393,7 @@ Best,
                       />
                     ) : (
                       <span 
-                        className="font-medium cursor-text"
+                        className={`font-medium cursor-text ${prospect.status === 'enriching' ? 'animate-pulse' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingProspect(prospect.id);
@@ -296,7 +403,7 @@ Best,
                       </span>
                     )}
                   </div>
-                  <div className={`col-span-3 text-sm font-medium ${getStatusColor(prospect.status)}`}>
+                  <div className={`col-span-2 text-sm font-medium ${getStatusColor(prospect.status)}`}>
                     {prospect.status.charAt(0).toUpperCase() + prospect.status.slice(1)}
                   </div>
                   <div className="col-span-3 text-sm text-muted-foreground">
@@ -344,73 +451,183 @@ Best,
                   </Button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {/* Outreach Composer */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">Outreach Composer</h4>
-                      <span className="text-primary">✨</span>
-                    </div>
-                    
-                    <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line">
-                      {generateOutreachTemplate(selectedProspect.name)}
-                    </div>
+                <div className="flex-1 overflow-y-auto">
+                  <Tabs defaultValue="profile" className="h-full">
+                    <TabsList className="grid w-full grid-cols-3 mx-6 mt-6">
+                      <TabsTrigger value="profile">Profile & Fit</TabsTrigger>
+                      <TabsTrigger value="outreach">Outreach</TabsTrigger>
+                      <TabsTrigger value="interview">Interview</TabsTrigger>
+                    </TabsList>
 
-                    <Button 
-                      onClick={() => handleCopyAndMarkContacted(selectedProspect)}
-                      className="w-full flex items-center gap-2"
-                      disabled={selectedProspect.status !== 'identified'}
-                    >
-                      <Copy className="h-4 w-4" />
-                      {selectedProspect.status === 'identified' ? 'Copy & Mark as Contacted' : 'Already Contacted'}
-                    </Button>
-                  </div>
+                    <TabsContent value="profile" className="p-6 space-y-6">
+                      {/* AI-Generated Summary */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">AI-Generated Summary</h4>
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </div>
+                        
+                        <div className="bg-background-subtle rounded-lg p-4">
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {selectedProspect.aiSummary || 'AI analysis will appear here once prospect is enriched.'}
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Activity Feed */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">Activity</h4>
-                    
-                    {/* Add Note */}
-                    <div className="flex gap-2">
-                      <Textarea
-                        placeholder="Add a note or log an activity..."
-                        value={newNote}
-                        onChange={(e) => setNewNote(e.target.value)}
-                        className="flex-1 min-h-[80px]"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && e.metaKey) {
-                            addNote(selectedProspect.id);
-                          }
-                        }}
-                      />
-                      <Button 
-                        onClick={() => addNote(selectedProspect.id)}
-                        disabled={!newNote.trim()}
-                        className="self-end"
-                      >
-                        Add
-                      </Button>
-                    </div>
+                      {/* AI-Generated Fit Score */}
+                      <div className="space-y-4">
+                        <h4 className="font-semibold">AI-Generated Fit Score</h4>
+                        
+                        {selectedProspect.fitScore && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${
+                                selectedProspect.fitScore === 'strong' ? 'bg-green-500' :
+                                selectedProspect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
+                              }`} />
+                              <span className="font-medium text-sm">
+                                {selectedProspect.fitScore === 'strong' ? 'Strong Fit' :
+                                 selectedProspect.fitScore === 'moderate' ? 'Moderate Fit' : 'Weak Fit'}
+                              </span>
+                              <span className="text-muted-foreground text-sm">
+                                - Matches your target segment and shows recent struggle.
+                              </span>
+                            </div>
+                            
+                            {selectedProspect.evidenceOfStruggle && (
+                              <div className="bg-background-subtle rounded-lg p-3">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                                  Evidence of Struggle
+                                </p>
+                                <p className="text-sm text-foreground">
+                                  {selectedProspect.evidenceOfStruggle}
+                                </p>
+                                {selectedProspect.evidenceSource && (
+                                  <p className="text-xs text-primary mt-2 cursor-pointer hover:underline">
+                                    Source: {selectedProspect.evidenceSource}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Activity List */}
-                    <div className="space-y-3">
-                      {selectedProspect.activities.map((activity) => (
-                        <div key={activity.id} className="flex gap-3 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <p className="text-foreground">{activity.message}</p>
-                            <p className="text-muted-foreground text-xs">
-                              {formatDate(activity.timestamp)}
-                            </p>
+                      {/* Contact Information */}
+                      {(selectedProspect.email || selectedProspect.company || selectedProspect.jobTitle) && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">AI-Discovered Contact Info</h4>
+                          
+                          <div className="space-y-2">
+                            {selectedProspect.email && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-foreground">{selectedProspect.email}</span>
+                              </div>
+                            )}
+                            {selectedProspect.company && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-foreground">{selectedProspect.jobTitle} at {selectedProspect.company}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      ))}
-                      
-                      {selectedProspect.activities.length === 0 && (
-                        <p className="text-muted-foreground text-sm italic">No activity yet.</p>
                       )}
-                    </div>
-                  </div>
+                    </TabsContent>
+
+                    <TabsContent value="outreach" className="p-6 space-y-6">
+                      {/* Personalized Outreach Composer */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">Hyper-Personalized Outreach</h4>
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </div>
+                        
+                        <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line font-mono">
+                          {generatePersonalizedOutreach(selectedProspect)}
+                        </div>
+
+                        <Button 
+                          onClick={() => handleCopyAndMarkContacted(selectedProspect)}
+                          className="w-full flex items-center gap-2"
+                          disabled={selectedProspect.status !== 'identified'}
+                        >
+                          <Copy className="h-4 w-4" />
+                          {selectedProspect.status === 'identified' ? 'Copy & Mark as Contacted' : 'Already Contacted'}
+                        </Button>
+                      </div>
+
+                      {/* AI Writing Tools */}
+                      <div className="space-y-4">
+                        <h4 className="font-semibold">AI Writing Tools</h4>
+                        
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            Rewrite Casual
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            Rewrite Formal
+                          </Button>
+                        </div>
+                        
+                        <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          Suggest Talking Points
+                        </Button>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="interview" className="p-6 space-y-6">
+                      {/* Activity Feed */}
+                      <div className="space-y-4">
+                        <h4 className="font-semibold">Interview Notes & Activity</h4>
+                        
+                        {/* Add Note */}
+                        <div className="flex gap-2">
+                          <Textarea
+                            placeholder="Add interview notes, call summary, or log an activity..."
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            className="flex-1 min-h-[100px]"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.metaKey) {
+                                addNote(selectedProspect.id);
+                              }
+                            }}
+                          />
+                          <Button 
+                            onClick={() => addNote(selectedProspect.id)}
+                            disabled={!newNote.trim()}
+                            className="self-end"
+                          >
+                            Add
+                          </Button>
+                        </div>
+
+                        {/* Activity List */}
+                        <div className="space-y-3">
+                          {selectedProspect.activities.map((activity) => (
+                            <div key={activity.id} className="flex gap-3 text-sm">
+                              <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <div className="flex-1">
+                                <p className="text-foreground">{activity.message}</p>
+                                <p className="text-muted-foreground text-xs">
+                                  {formatDate(activity.timestamp)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {selectedProspect.activities.length === 0 && (
+                            <p className="text-muted-foreground text-sm italic">No activity yet. Interview evidence will appear here.</p>
+                          )}
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
 
                 {/* Footer */}
@@ -423,6 +640,57 @@ Best,
             </div>
           )}
         </div>
+
+        {/* URL Input Overlay */}
+        {showUrlInput && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card border border-border rounded-lg p-6 w-96 space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Add Prospect</h3>
+                <p className="text-sm text-muted-foreground">
+                  Enter a LinkedIn profile, company website, or news article URL...
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <Input
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://linkedin.com/in/prospect..."
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      enrichProspectFromUrl(urlInput);
+                    } else if (e.key === 'Escape') {
+                      setShowUrlInput(false);
+                      setUrlInput('');
+                    }
+                  }}
+                />
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => enrichProspectFromUrl(urlInput)}
+                    disabled={!urlInput.trim()}
+                    className="flex-1"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Enrich with AI
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setShowUrlInput(false);
+                      setUrlInput('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
