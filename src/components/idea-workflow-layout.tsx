@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InterviewScriptScreen } from '@/components/interview-script-screen';
 import { ArrowLeft } from 'lucide-react';
 
 interface IdeaWorkflowLayoutProps {
@@ -9,6 +10,16 @@ interface IdeaWorkflowLayoutProps {
 }
 
 export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
+  const [showInterviewScript, setShowInterviewScript] = useState(false);
+
+  if (showInterviewScript) {
+    return (
+      <InterviewScriptScreen 
+        idea={idea}
+        onBack={() => setShowInterviewScript(false)}
+      />
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
@@ -165,7 +176,10 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
                   </div>
                 </div>
 
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => setShowInterviewScript(true)}
+                >
                   Generate Interview Script
                 </Button>
               </div>
