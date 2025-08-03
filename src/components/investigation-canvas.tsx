@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft } from 'lucide-react';
 
 interface CanvasSection {
   id: string;
@@ -8,7 +9,12 @@ interface CanvasSection {
   content: string;
 }
 
-export function InvestigationCanvas() {
+interface InvestigationCanvasProps {
+  idea: string;
+  onBack?: () => void;
+}
+
+export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) {
   const [sections, setSections] = useState<CanvasSection[]>([
     {
       id: 'customer-segment',
@@ -48,9 +54,23 @@ export function InvestigationCanvas() {
       <div className="container mx-auto py-12">
         <div className="space-y-8">
           {/* Header */}
-          <div className="text-center space-y-2">
-            <h1 className="text-page-title">Investigation Canvas</h1>
-            <p className="text-foreground-secondary">Structure your idea for systematic validation</p>
+          <div className="space-y-4">
+            {onBack && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Ideas
+              </Button>
+            )}
+            <div className="text-center space-y-2">
+              <h1 className="text-page-title">Investigation Canvas</h1>
+              <p className="text-foreground-secondary">Structure your idea for systematic validation</p>
+              <p className="text-sm text-muted-foreground italic">"{idea}"</p>
+            </div>
           </div>
 
           {/* Canvas Sections */}

@@ -9,7 +9,11 @@ interface Idea {
   createdAt: Date;
 }
 
-export function IdeasHub() {
+interface IdeasHubProps {
+  onInvestigate?: (idea: string) => void;
+}
+
+export function IdeasHub({ onInvestigate }: IdeasHubProps) {
   const [ideas, setIdeas] = useState<Idea[]>([
     { id: '1', text: 'AI-powered customer interview analysis tool', createdAt: new Date() },
     { id: '2', text: 'Subscription box for sustainable office supplies', createdAt: new Date() },
@@ -31,8 +35,10 @@ export function IdeasHub() {
   };
 
   const handleEnhanceIdea = (ideaId: string) => {
-    console.log('Enhance idea:', ideaId);
-    // Navigate to Investigation Canvas
+    const idea = ideas.find(i => i.id === ideaId);
+    if (idea && onInvestigate) {
+      onInvestigate(idea.text);
+    }
   };
 
   const handleArchiveIdea = (ideaId: string) => {
