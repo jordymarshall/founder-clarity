@@ -19,9 +19,9 @@
     --card-foreground: 225 7% 97.6%;
 
     /* Accent & Primary Colors */
-    --primary: 119 83% 91%; /* #D6FCD5 */
+    --primary: 120 100% 95%; /* #E3FFE3 */
     --primary-foreground: 225 7% 5%; /* Dark text for contrast */
-    --primary-glow: 119 83% 91% / 0.2;
+    --primary-glow: 120 100% 95% / 0.2;
 
     /* Border & Divider Colors */
     --border: 225 6% 14.9%; /* #252528 */
@@ -31,13 +31,13 @@
     /* States */
     --muted: 225 6% 9.4%;
     --muted-foreground: 225 3% 64.3%;
-    --accent: 119 83% 91%; /* #D6FCD5 */
+    --accent: 120 100% 95%; /* #E3FFE3 */
     --accent-foreground: 225 7% 5%; /* Dark text for contrast */
 
     /* Utility */
     --destructive: 0 72% 51%;
     --destructive-foreground: 225 7% 97.6%;
-    --ring: 119 83% 91%; /* #D6FCD5 */
+    --ring: 120 100% 95%; /* #E3FFE3 */
     --radius: 4px;
 
     /* Custom Design Tokens */
