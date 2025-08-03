@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/app-layout';
 import { IdeasHub } from '@/components/ideas-hub';
-import { InvestigationCanvas } from '@/components/investigation-canvas';
+import { IdeaWorkflowLayout } from '@/components/idea-workflow-layout';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'ideas' | 'canvas'>('ideas');
+  const [currentView, setCurrentView] = useState<'ideas' | 'workflow'>('ideas');
   const [selectedIdea, setSelectedIdea] = useState<string | null>(null);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const Index = () => {
 
   const handleInvestigate = (idea: string) => {
     setSelectedIdea(idea);
-    setCurrentView('canvas');
+    setCurrentView('workflow');
   };
 
   // Show loading or redirect while checking auth
@@ -62,8 +62,8 @@ const Index = () => {
         {currentView === 'ideas' && (
           <IdeasHub onInvestigate={handleInvestigate} />
         )}
-        {currentView === 'canvas' && selectedIdea && (
-          <InvestigationCanvas 
+        {currentView === 'workflow' && selectedIdea && (
+          <IdeaWorkflowLayout 
             idea={selectedIdea} 
             onBack={() => setCurrentView('ideas')}
           />
