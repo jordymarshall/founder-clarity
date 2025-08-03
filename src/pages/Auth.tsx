@@ -18,7 +18,14 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Show loading while auth is initializing
+  // Redirect if already authenticated - MOVED BEFORE EARLY RETURN
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  // Show loading while auth is initializing - MOVED AFTER ALL HOOKS
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -26,13 +33,6 @@ export default function Auth() {
       </div>
     );
   }
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
