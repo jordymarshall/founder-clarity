@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Copy } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Copy, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface CanvasSection {
+interface Prospect {
   id: string;
-  title: string;
-  content: string;
+  name: string;
+  source: string;
+  status: 'identified' | 'contacted' | 'scheduled' | 'completed';
 }
 
 interface InvestigationCanvasProps {
@@ -17,145 +19,66 @@ interface InvestigationCanvasProps {
 }
 
 export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) {
-  const [showScript, setShowScript] = useState(false);
   const { toast } = useToast();
-  const [sections, setSections] = useState<CanvasSection[]>([
-    {
-      id: 'customer-segment',
-      title: 'Customer Segment',
-      content: 'Early-stage startup founders who struggle with product-market fit and waste time building features nobody wants.'
-    },
-    {
-      id: 'problem',
-      title: 'The Problem',
-      content: 'Founders often build based on assumptions rather than validated customer problems, leading to failed products and wasted resources.'
-    },
-    {
-      id: 'current-solutions',
-      title: 'Current Solutions',
-      content: 'Basic survey tools, expensive consultants, trial and error approach, or following generic startup advice from books.'
-    },
-    {
-      id: 'hypothesis',
-      title: 'Solution Hypothesis',
-      content: 'An AI-powered coach that guides founders through systematic customer discovery with templates, analysis, and actionable insights.'
-    }
-  ]);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  
+  // Mock data from Module 1 - in real app this would come from props/context
+  const customerSegment = "Coffee shop owners 1-3 years in business";
+  const jtbd = "Attracting new customers to grow the business";
 
-  const updateSection = (id: string, content: string) => {
-    setSections(prev => prev.map(section => 
-      section.id === id ? { ...section, content } : section
+  const addProspect = () => {
+    const newProspect: Prospect = {
+      id: Date.now().toString(),
+      name: '',
+      source: '',
+      status: 'identified'
+    };
+    setProspects(prev => [newProspect, ...prev]);
+  };
+
+  const updateProspect = (id: string, field: keyof Prospect, value: string) => {
+    setProspects(prev => prev.map(prospect => 
+      prospect.id === id ? { ...prospect, [field]: value } : prospect
     ));
   };
 
-  const handleGenerateScript = () => {
-    setShowScript(true);
+  const getStatusColor = (status: Prospect['status']) => {
+    switch (status) {
+      case 'identified': return 'bg-muted text-muted-foreground';
+      case 'contacted': return 'bg-blue-100 text-blue-800';
+      case 'scheduled': return 'bg-purple-100 text-purple-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-muted text-muted-foreground';
+    }
   };
 
-  const generateInterviewScript = () => {
-    const customerSegment = sections.find(s => s.id === 'customer-segment')?.content || '';
-    const problem = sections.find(s => s.id === 'problem')?.content || '';
-    const currentSolutions = sections.find(s => s.id === 'current-solutions')?.content || '';
-    
-    return `# Customer Problem Discovery Interview Script
+  const generateOutreachTemplate = () => {
+    return `Subject: Research into the world of ${customerSegment}
 
-## Pre-Interview Setup
-**Duration:** 30-45 minutes
-**Goal:** Understand the customer's real-world experience and validate our problem hypothesis
+Hi [Prospect Name],
 
-## 1. Frame the Encounter (2-3 minutes)
+My name is [Your Name], and I'm currently researching the process that ${customerSegment}s use for ${jtbd}.
 
-"Thank you for taking the time to speak with me today. I want to be completely transparent about why we're talking. I'm doing research to understand how people like yourself currently handle [the problem area]. This is purely research - I'm not here to pitch or sell you anything. I'm genuinely interested in learning from your experience, and there are no wrong answers. Does that sound good?"
+My goal is simply to learn from people with firsthand experience like you. This is not a sales pitch.
 
-## 2. Establish the Anchor (5 minutes)
+Would you be open to a 30-minute chat in the next week to share your perspective? As a thank you, I can offer a $50 gift card.
 
-**Goal:** Ground the conversation in specific, recent behavior
-
-"To help me understand your world, could you tell me what you're currently using or doing to ${problem.toLowerCase().replace(/\.$/, '')}?"
-
-**Listen for:** Their current solution (existing alternative)
-**Follow-up:** "When did you start using [their solution]?" / "Can you remember roughly when that was?"
-
-## 3. Reconstruct the Backstory (10-15 minutes)
-
-**Goal:** Work backward to find their switching trigger
-
-"Can you take me back to the time *before* you started using [their current solution]?"
-
-**Hunt for the Switching Trigger:**
-- "When was the first time you realized you needed a new approach?"
-- "What prompted you to look for a solution?"
-- "Do you remember what was happening in your business/life at that time?"
-
-**Quantify What's at Stake:**
-- "What would have happened if you had done nothing?"
-- "What were you worried about?"
-
-**Explore Consideration Set:**
-- "What other options did you consider?"
-- "How did you evaluate your choices?"
-
-## 4. Explore the Experience (10-15 minutes)
-
-**Goal:** Find friction points in their current process
-
-"Can you walk me through how you typically use [their current solution]?"
-
-**Listen for friction points:**
-- Steps that seem cumbersome
-- Workarounds they've created
-- Things that take longer than expected
-- Frustrations or pet peeves
-
-**Measure the gap:**
-- "When you first started, what were you hoping to achieve?"
-- "How has [their solution] lived up to those expectations?"
-- "What's working well? What's not working as well as you'd hoped?"
-
-## 5. Conclude and Open the Door (2-3 minutes)
-
-"This has been incredibly helpful. Based on what you've shared, I'm exploring the idea of ${sections.find(s => s.id === 'hypothesis')?.content?.toLowerCase() || 'a solution that addresses these challenges'}. 
-
-Would it be okay if I followed up with you as this develops? And do you know anyone else in your network who might have similar experiences and would be willing to share their perspective?"
-
-## Post-Interview Action Items
-
-1. **Immediately debrief** (within 15 minutes):
-   - Fill out Customer Forces Canvas
-   - Note key quotes and friction points
-   - Identify patterns compared to previous interviews
-
-2. **Look for patterns across interviews:**
-   - Common switching triggers
-   - Shared friction points  
-   - Similar existing alternatives
-   - Recurring desired outcomes
-
-## Key Questions Bank
-
-**For deeper exploration:**
-- "Help me understand what you mean by [their term]"
-- "Can you give me a specific example?"
-- "Walk me through that process step by step"
-- "How did that make you feel?"
-- "What did you do next?"
-- "Who else was involved in that decision?"
-
-**Remember:** Stay curious, listen more than you talk, and dig into specific stories rather than general opinions.`;
+Best,
+[Your Name]`;
   };
 
-  const handleCopyScript = async () => {
-    const script = generateInterviewScript();
+  const handleCopyTemplate = async () => {
+    const template = generateOutreachTemplate();
     try {
-      await navigator.clipboard.writeText(script);
+      await navigator.clipboard.writeText(template);
       toast({
-        title: "Interview script copied!",
-        description: "The script has been copied to your clipboard.",
+        title: "Template copied!",
+        description: "The outreach template has been copied to your clipboard.",
       });
     } catch (err) {
       toast({
         title: "Copy failed",
-        description: "Please copy the script manually.",
+        description: "Please copy the template manually.",
         variant: "destructive",
       });
     }
@@ -179,63 +102,162 @@ Would it be okay if I followed up with you as this develops? And do you know any
               </Button>
             )}
             <div className="text-center space-y-2">
-              <h1 className="text-page-title">Investigation Canvas</h1>
-              <p className="text-foreground-secondary">Structure your idea for systematic validation</p>
-              <p className="text-sm text-muted-foreground italic">"{idea}"</p>
+              <h1 className="text-page-title">The Search for Evidence</h1>
+              <p className="text-foreground-secondary">Find real people to test your beliefs against</p>
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs flex items-center justify-center">1</div>
+                  <span className="text-sm text-muted-foreground">Beliefs</span>
+                </div>
+                <div className="w-8 h-px bg-border"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">2</div>
+                  <span className="text-sm font-medium">Evidence</span>
+                </div>
+                <div className="w-8 h-px bg-border"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs flex items-center justify-center">3</div>
+                  <span className="text-sm text-muted-foreground">Insights</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Canvas Sections */}
-          <div className="max-w-3xl mx-auto space-y-6">
-            {sections.map((section) => (
-              <div key={section.id} className="space-y-3">
-                <h3 className="text-subtle uppercase tracking-wide">{section.title}</h3>
-                <Textarea
-                  value={section.content}
-                  onChange={(e) => updateSection(section.id, e.target.value)}
-                  className="min-h-[100px] bg-card border-0 resize-none text-body leading-relaxed focus:ring-2 focus:ring-primary/20"
-                  placeholder={`Describe the ${section.title.toLowerCase()}...`}
-                />
+          {/* Main Workspace */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Left Column - Prospect List */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-section-head">Prospects</h2>
+                <Button onClick={addProspect} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Prospect
+                </Button>
               </div>
-            ))}
-          </div>
 
-          {/* Generate Script CTA */}
-          <div className="max-w-3xl mx-auto pt-8">
-            <Button 
-              onClick={handleGenerateScript}
-              className="w-full py-3 text-base font-medium"
-            >
-              Generate Interview Script
-            </Button>
+              {/* Empty State or Prospect List */}
+              {prospects.length === 0 ? (
+                <div className="bg-card rounded-lg p-8 text-center border border-dashed border-border">
+                  <p className="text-foreground-secondary mb-4">
+                    Time to find your first interviewees. Start by adding people who match your{' '}
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      Early Adopter Segment: {customerSegment}
+                    </Badge>
+                  </p>
+                  <Button onClick={addProspect} variant="outline" className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Your First Prospect
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-2">
+                    <div className="col-span-4">Name</div>
+                    <div className="col-span-4">Source</div>
+                    <div className="col-span-4">Status</div>
+                  </div>
+
+                  {/* Prospect Rows */}
+                  {prospects.map((prospect) => (
+                    <div key={prospect.id} className="grid grid-cols-12 gap-4 py-3 border-b border-border/50">
+                      <div className="col-span-4">
+                        <Input
+                          placeholder="Name"
+                          value={prospect.name}
+                          onChange={(e) => updateProspect(prospect.id, 'name', e.target.value)}
+                          className="border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <Input
+                          placeholder="Source"
+                          value={prospect.source}
+                          onChange={(e) => updateProspect(prospect.id, 'source', e.target.value)}
+                          className="border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <Select
+                          value={prospect.status}
+                          onValueChange={(value: Prospect['status']) => updateProspect(prospect.id, 'status', value)}
+                        >
+                          <SelectTrigger className={`border-0 bg-transparent px-0 focus:ring-0 ${getStatusColor(prospect.status)}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="identified">Identified</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Outreach Helper */}
+            <div className="space-y-6">
+              <div className="bg-card rounded-lg p-6 border">
+                <h3 className="text-section-head mb-4 flex items-center gap-2">
+                  Outreach Template
+                  <span className="text-primary">✨</span>
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="bg-background-subtle rounded-lg p-4 text-sm">
+                    <div className="whitespace-pre-line">
+                      Subject: Research into the world of{' '}
+                      <Badge variant="secondary" className="bg-primary/10 text-primary mx-1">
+                        {customerSegment}
+                      </Badge>
+                      <br />
+                      <br />
+                      Hi [Prospect Name],
+                      <br />
+                      <br />
+                      My name is [Your Name], and I'm currently researching the process that{' '}
+                      <Badge variant="secondary" className="bg-primary/10 text-primary mx-1">
+                        {customerSegment}
+                      </Badge>
+                      s use for{' '}
+                      <Badge variant="secondary" className="bg-primary/10 text-primary mx-1">
+                        {jtbd}
+                      </Badge>
+                      .
+                      <br />
+                      <br />
+                      My goal is simply to learn from people with firsthand experience like you. This is not a sales pitch.
+                      <br />
+                      <br />
+                      Would you be open to a 30-minute chat in the next week to share your perspective? As a thank you, I can offer a $50 gift card.
+                      <br />
+                      <br />
+                      Best,
+                      <br />
+                      [Your Name]
+                    </div>
+                  </div>
+
+                  <Button onClick={handleCopyTemplate} className="w-full flex items-center gap-2">
+                    <Copy className="h-4 w-4" />
+                    Copy Template
+                  </Button>
+
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-subtle text-sm">
+                      <strong>Remember:</strong> You're a student asking to learn from an expert. The goal is to be curious, not to sell.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Interview Script Dialog */}
-      <Dialog open={showScript} onOpenChange={setShowScript}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              Customer Discovery Interview Script
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyScript}
-                className="flex items-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                Copy Script
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono bg-muted p-4 rounded-lg">
-              {generateInterviewScript()}
-            </pre>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
