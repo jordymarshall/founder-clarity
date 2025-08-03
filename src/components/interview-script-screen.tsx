@@ -74,7 +74,7 @@ export function InterviewScriptScreen({
           <Info className="h-3 w-3" />
         </Button>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80 bg-popover border border-border">
+      <HoverCardContent className="w-80 bg-popover border border-border z-50" side="top" align="start">
         <div className="space-y-3">
           <div>
             <strong className="text-sm">Purpose:</strong>
