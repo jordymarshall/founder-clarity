@@ -62,7 +62,7 @@ export function InterviewScriptScreen({
   };
 
   const VariablePill = ({ children }: { children: React.ReactNode }) => (
-    <span className="inline-block px-2 py-1 mx-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 rounded-md">
+    <span className="inline-block px-2 py-1 mx-1 text-xs font-medium text-green-700 border border-green-200 rounded-md" style={{ backgroundColor: '#EDFFEC' }}>
       {children}
     </span>
   );
