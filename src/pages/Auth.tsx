@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const [displayName, setDisplayName] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const { signUp, signIn, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -25,51 +27,77 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      const { error } = isSignUp 
-        ? await signUp(email, password)
-        : await signIn(email, password);
+      let result;
+      if (isSignUp) {
+        result = await signUp(email, password, displayName);
+        if (!result.error) {
+          toast({
+            title: "Check your email",
+            description: "We've sent you a confirmation link to complete your signup.",
+          });
+        }
+      } else {
+        result = await signIn(email, password);
+        if (!result.error) {
+          navigate('/');
+        }
+      }
 
-      if (error) {
+      if (result.error) {
+        let errorMessage = "Authentication failed";
+        
+        if (result.error.message.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password";
+        } else if (result.error.message.includes("User already registered")) {
+          errorMessage = "Account already exists. Try signing in instead.";
+        } else if (result.error.message.includes("Email not confirmed")) {
+          errorMessage = "Please check your email and confirm your account first.";
+        }
+        
         toast({
-          title: "Authentication Error",
-          description: error.message,
+          title: "Error",
+          description: errorMessage,
           variant: "destructive",
         });
-      } else if (isSignUp) {
-        toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link.",
-        });
       }
-    } catch (error) {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-semibold text-foreground">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground">
             {isSignUp 
-              ? 'Start validating your startup ideas' 
-              : 'Sign in to your account'}
+              ? 'Start your startup journey with StartupDetective'
+              : 'Sign in to continue your investigation'
+            }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your name"
+                autoFocus={isSignUp}
+              />
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -77,8 +105,9 @@ export default function Auth() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
               required
-              autoFocus
+              autoFocus={!isSignUp}
             />
           </div>
 
@@ -89,29 +118,32 @@ export default function Auth() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               required
+              minLength={6}
             />
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </Button>
         </form>
 
         <div className="text-center">
-          <Button
-            variant="ghost"
+          <button
+            type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {isSignUp 
               ? 'Already have an account? Sign in' 
-              : "Don't have an account? Sign up"}
-          </Button>
+              : "Don't have an account? Sign up"
+            }
+          </button>
         </div>
       </Card>
     </div>
