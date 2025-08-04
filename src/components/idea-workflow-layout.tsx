@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InterviewScriptScreen } from '@/components/interview-script-screen';
-import { LivingCanvas } from './living-canvas';
+import { InvestigationCanvas } from '@/components/investigation-canvas';
 import { ArrowLeft } from 'lucide-react';
 
 interface IdeaWorkflowLayoutProps {
@@ -47,7 +47,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
         <Tabs defaultValue="module1" className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="module1" className="text-xs">
-              1. Living Canvas
+              1. Deconstruct
             </TabsTrigger>
             <TabsTrigger value="module2" className="text-xs">
               2. Evidence
@@ -63,24 +63,60 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
             </TabsTrigger>
           </TabsList>
 
-          {/* Module 1: Living Canvas */}
-          <TabsContent value="module1" className="p-0">
-            <LivingCanvas idea={idea} />
+          {/* Module 1: Deconstructing Ideas */}
+          <TabsContent value="module1" className="space-y-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-semibold">Module 1: Deconstructing Your Idea</h2>
+                <p className="text-muted-foreground">Translate your idea into testable beliefs</p>
+              </div>
+              
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <h3 className="font-medium">Customer Segments</h3>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">Broad Customer Segment:</p>
+                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      [Who is your target market?]
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">Early Adopter Segment:</p>
+                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      [Who feels this problem most intensely?]
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-medium">Problem Definition</h3>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">Core Problem:</p>
+                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      [What prevents them from achieving their desired outcome?]
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">Existing Alternatives:</p>
+                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      [What are they currently doing to solve this?]
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium mb-3">Job to be Done (JTBD)</h3>
+                <div className="min-h-[80px] bg-muted rounded p-3 text-sm">
+                  [What is the customer ultimately trying to accomplish?]
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Module 2: Finding Evidence */}
-          <TabsContent value="module2" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Module 2: Finding Evidence</h2>
-                <p className="text-muted-foreground">Search for real people who struggle with this problem</p>
-              </div>
-              
-              <div className="p-8 border-2 border-dashed border-muted rounded-lg text-center">
-                <p className="text-muted-foreground">Evidence gathering tools coming soon...</p>
-                <p className="text-sm text-muted-foreground mt-2">Focus on refining your canvas first</p>
-              </div>
-            </div>
+          <TabsContent value="module2" className="p-0">
+            <InvestigationCanvas idea={idea} />
           </TabsContent>
 
           {/* Module 3: Problem Discovery */}
