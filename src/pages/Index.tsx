@@ -41,7 +41,7 @@ const Index = () => {
 
   return (
     <AppLayout>
-      <div className="w-full py-8 px-6">
+      <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header with sign out */}
         <div className="flex justify-between items-center mb-8">
           <div>
