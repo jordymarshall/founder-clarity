@@ -350,10 +350,9 @@ Best,
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-3 mb-2">
               <div className="col-span-1">FIT</div>
-              <div className="col-span-4">PROSPECT</div>
-              <div className="col-span-2">STATUS</div>
-              <div className="col-span-3">CONTACTED</div>
-              <div className="col-span-2">SOURCE</div>
+              <div className="col-span-5">PROSPECT</div>
+              <div className="col-span-2">CONTACTED</div>
+              <div className="col-span-4">SOURCE</div>
             </div>
 
             {/* Prospect Rows */}
@@ -376,7 +375,7 @@ Best,
                       <div className="w-2 h-2 rounded-full bg-muted animate-pulse" />
                     ) : null}
                   </div>
-                  <div className="col-span-4">
+                  <div className="col-span-5">
                     {editingProspect === prospect.id ? (
                       <Input
                         value={prospect.name}
@@ -403,13 +402,14 @@ Best,
                       </span>
                     )}
                   </div>
-                  <div className={`col-span-2 text-sm font-medium ${getStatusColor(prospect.status)}`}>
-                    {prospect.status.charAt(0).toUpperCase() + prospect.status.slice(1)}
+                  <div className="col-span-2 text-sm text-muted-foreground flex items-center">
+                    {prospect.contactedDate ? (
+                      <span className="text-green-500">✓</span>
+                    ) : (
+                      <span className="text-red-500">✗</span>
+                    )}
                   </div>
-                  <div className="col-span-3 text-sm text-muted-foreground">
-                    {prospect.contactedDate ? formatDate(prospect.contactedDate) : '-'}
-                  </div>
-                  <div className="col-span-2 text-sm text-muted-foreground">
+                  <div className="col-span-4 text-sm text-muted-foreground truncate">
                     {prospect.source || '-'}
                   </div>
                 </div>
