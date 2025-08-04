@@ -24,7 +24,8 @@ interface HypothesisCanvasProps {
 export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
   const [inputValue, setInputValue] = useState(idea || '');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showCanvas, setShowCanvas] = useState(!!idea);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [refinementInput, setRefinementInput] = useState('');
   const [cards, setCards] = useState<CanvasCard[]>([]);
   const [editingCard, setEditingCard] = useState<string | null>(null);
@@ -39,10 +40,11 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
 
   // Initialize canvas when idea is provided
   useEffect(() => {
-    if (idea && !showCanvas) {
+    if (idea && !hasInitialized) {
+      setHasInitialized(true);
       handleGenerateCanvas(idea);
     }
-  }, [idea]);
+  }, [idea, hasInitialized]);
 
   const mockAnalyzeIdea = async (ideaText: string): Promise<CanvasCard[]> => {
     // Simulate AI analysis delay
