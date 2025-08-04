@@ -112,21 +112,55 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h3 className="font-medium mb-3">Interview Framework</h3>
-                  <div className="grid gap-4 text-sm">
-                    <div className="p-3 bg-muted rounded">
-                      <strong>1. Frame (2-3 min):</strong> Establish trust and learning context
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">Frame (2-3 min)</h4>
+                        <p className="text-sm text-muted-foreground">Establish trust and learning context</p>
+                      </div>
                     </div>
-                    <div className="p-3 bg-muted rounded">
-                      <strong>2. Anchor (5 min):</strong> Ground in specific recent behavior
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">Anchor (5 min)</h4>
+                        <p className="text-sm text-muted-foreground">Ground in specific recent behavior</p>
+                      </div>
                     </div>
-                    <div className="p-3 bg-muted rounded">
-                      <strong>3. Backstory (10-15 min):</strong> Find switching triggers
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">Backstory (10-15 min)</h4>
+                        <p className="text-sm text-muted-foreground">Find switching triggers</p>
+                      </div>
                     </div>
-                    <div className="p-3 bg-muted rounded">
-                      <strong>4. Experience (10-15 min):</strong> Explore current solution friction
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        4
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">Experience (10-15 min)</h4>
+                        <p className="text-sm text-muted-foreground">Explore current solution friction</p>
+                      </div>
                     </div>
-                    <div className="p-3 bg-muted rounded">
-                      <strong>5. Conclude (2-3 min):</strong> Thank and ask for referrals
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        5
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">Conclude (2-3 min)</h4>
+                        <p className="text-sm text-muted-foreground">Thank and ask for referrals</p>
+                      </div>
                     </div>
                   </div>
                 </div>
