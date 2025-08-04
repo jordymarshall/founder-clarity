@@ -402,7 +402,7 @@ Best,
                       </span>
                     )}
                   </div>
-                  <div className="col-span-2 text-sm text-muted-foreground flex items-center">
+                  <div className="col-span-2 text-sm text-muted-foreground flex items-center justify-center">
                     {prospect.contactedDate ? (
                       <span className="text-green-500">✓</span>
                     ) : (
