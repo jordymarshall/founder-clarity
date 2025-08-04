@@ -65,6 +65,193 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
 
           {/* Module 1: Hypothesis Canvas */}
           <TabsContent value="module1" className="space-y-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-semibold">Module 1: Deconstruct</h2>
+                <p className="text-muted-foreground">The Block-Based Hypothesis Editor</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-3">The Vision: Building Arguments Like Lego</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Minimalist, block-based editor similar to Notion but with Linear's speed and subtlety</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Every piece of content is its own movable "block" - headings, hypotheses, text</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Canvas feels less like a document, more like Lego bricks for building arguments</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-3">How It Works and Feels</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Clean text document by default - no visible boxes or lines</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Hover reveals subtle :: drag handles - signaling movable blocks</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Grab handles to reorder thoughts instantly</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-3">The / Command: Building with Intent</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Type / on new line for instant command menu</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">/h1 for main heading, /text for paragraph</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">/hypothesis opens sub-menu: Customer Segment, Core Problem, Existing Alternative, Job to be Done</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        4
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Summon components you need instead of filling forms</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-3">Smart Hypothesis Blocks</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Visually distinguished by title (e.g., "CORE PROBLEM")</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Contains editable text for that specific belief</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">AI provenance (✨) and Coherence Engine (●) indicators attached to block handle</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-3">AI-Native Block Manipulation</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        1
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">AI generates pre-built sequence of Hypothesis Blocks from initial analysis</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        2
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">"Split my Core Problem into two points" → AI transforms single block into two</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        3
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">"Add hypothesis for university students" → AI inserts new Early Adopter block</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 bg-primary/10 text-primary text-sm font-medium rounded-full flex items-center justify-center">
+                        4
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm">Bottom input becomes command line for restructuring entire canvas</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <HypothesisCanvas idea={idea} />
           </TabsContent>
 
