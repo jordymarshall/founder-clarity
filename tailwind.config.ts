@@ -35,7 +35,8 @@ export default {
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,39 +62,11 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Design Guide Custom Colors
-				"page-title": 'hsl(var(--page-title))',
-				"section-head": 'hsl(var(--section-head))',
-				"foreground-secondary": 'hsl(var(--foreground-secondary))',
-				"background-subtle": 'hsl(var(--background-subtle))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
-				DEFAULT: '4px', // Design Guide default
-				button: '3px', // Design Guide button radius
-			},
-			spacing: {
-				// Design Guide 8px grid system
-				'1': '8px',
-				'2': '16px',
-				'3': '24px',
-				'4': '32px',
-				'5': '40px',
-				'6': '48px',
-				'7': '56px',
-				'8': '64px',
-				'9': '72px',
-				'10': '80px',
-			},
-			fontSize: {
-				// Design Guide Typography Scale
-				'page-title': ['28px', { fontWeight: '600', letterSpacing: '-0.02em' }],
-				'section-head': ['20px', { fontWeight: '600', letterSpacing: '-0.015em' }],
-				'body': ['15px', { fontWeight: '400', letterSpacing: '0em' }],
-				'subtle': ['13px', { fontWeight: '400', letterSpacing: '0em' }],
-				'button': ['14px', { fontWeight: '500', letterSpacing: '0em' }],
+				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
 				'accordion-down': {
