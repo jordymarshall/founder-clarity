@@ -319,26 +319,26 @@ Best,
 
   return (
     <div className="min-h-screen bg-background" ref={containerRef}>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-6">
         {/* Header */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-6 mb-12">
           {onBack && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onBack}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-foreground-secondary hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Ideas
             </Button>
           )}
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-2">
               <h1 className="text-page-title">Module 2: The Search for Evidence</h1>
-              <p className="text-foreground-secondary">Find real people to test your beliefs with.</p>
+              <p className="text-foreground-secondary text-body">Find real people to test your beliefs with.</p>
             </div>
-            <Button onClick={addProspect} className="flex items-center gap-2">
+            <Button onClick={addProspect} className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               + Add Prospect
             </Button>
           </div>
@@ -346,9 +346,9 @@ Best,
 
         <div className="relative">
           {/* Command Center - Prospect List */}
-          <div className={`transition-all duration-300 ${selectedProspectId ? 'opacity-75' : ''}`}>
+          <div className={`transition-all duration-200 ${selectedProspectId ? 'opacity-50' : ''}`}>
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-3 mb-2">
+            <div className="grid grid-cols-12 gap-6 text-subtle font-medium text-foreground-secondary border-b border-border pb-4 mb-4">
               <div className="col-span-1">FIT</div>
               <div className="col-span-4">PROSPECT</div>
               <div className="col-span-2">STATUS</div>
@@ -357,13 +357,13 @@ Best,
             </div>
 
             {/* Prospect Rows */}
-            <div className="space-y-1">
+            <div className="space-y-2">
               {prospects.map((prospect, index) => (
                 <div
                   key={prospect.id}
-                  className={`grid grid-cols-12 gap-4 py-3 px-2 rounded-lg cursor-pointer transition-colors ${
-                    focusedIndex === index ? 'bg-muted' : 'hover:bg-muted/50'
-                  } ${selectedProspectId === prospect.id ? 'bg-primary/10' : ''}`}
+                  className={`grid grid-cols-12 gap-6 py-4 px-4 rounded border transition-all duration-200 cursor-pointer ${
+                    focusedIndex === index ? 'bg-card border-border' : 'border-transparent hover:bg-card/50 hover:border-border'
+                  } ${selectedProspectId === prospect.id ? 'bg-primary/10 border-primary/20' : ''}`}
                   onClick={() => setSelectedProspectId(prospect.id)}
                 >
                   <div className="col-span-1 flex items-center">
@@ -387,13 +387,13 @@ Best,
                             setEditingProspect(null);
                           }
                         }}
-                        className="border-0 bg-transparent px-0 focus-visible:ring-0"
+                        className="border-0 bg-transparent px-0 focus-visible:ring-0 text-body"
                         placeholder="Prospect name"
                         autoFocus
                       />
                     ) : (
                       <span 
-                        className={`font-medium cursor-text ${prospect.status === 'enriching' ? 'animate-pulse' : ''}`}
+                        className={`font-medium cursor-text text-body ${prospect.status === 'enriching' ? 'animate-pulse' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingProspect(prospect.id);
@@ -403,13 +403,13 @@ Best,
                       </span>
                     )}
                   </div>
-                  <div className={`col-span-2 text-sm font-medium ${getStatusColor(prospect.status)}`}>
+                  <div className={`col-span-2 text-subtle font-medium ${getStatusColor(prospect.status)}`}>
                     {prospect.status.charAt(0).toUpperCase() + prospect.status.slice(1)}
                   </div>
-                  <div className="col-span-3 text-sm text-muted-foreground">
+                  <div className="col-span-3 text-subtle text-foreground-secondary">
                     {prospect.contactedDate ? formatDate(prospect.contactedDate) : '-'}
                   </div>
-                  <div className="col-span-2 text-sm text-muted-foreground">
+                  <div className="col-span-2 text-subtle text-foreground-secondary">
                     {prospect.source || '-'}
                   </div>
                 </div>
@@ -417,9 +417,9 @@ Best,
             </div>
 
             {prospects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  Press <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘+N</kbd> to add your first prospect
+              <div className="text-center py-16">
+                <p className="text-foreground-secondary mb-4 text-body">
+                  Press <kbd className="px-2 py-1 bg-card rounded text-subtle border border-border">⌘+N</kbd> to add your first prospect
                 </p>
               </div>
             )}
@@ -435,25 +435,27 @@ Best,
               />
               
               {/* Centered Modal */}
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="bg-card border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+                <div className="bg-card border border-border rounded shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col">
                   {/* Modal Header */}
                   <div className="flex items-center justify-between p-6 border-b border-border">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <Button 
                         variant="ghost" 
                         size="sm"
                         onClick={() => setSelectedProspectId(null)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-2 text-foreground-secondary hover:text-foreground"
                       >
                         <ChevronLeft className="h-4 w-4" />
+                        Back
                       </Button>
-                      <h3 className="text-xl font-semibold">{selectedProspect.name}</h3>
+                      <h3 className="text-section-head">{selectedProspect.name}</h3>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => setSelectedProspectId(null)}
+                      className="text-foreground-secondary hover:text-foreground"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -461,22 +463,22 @@ Best,
 
                   <div className="flex-1 overflow-y-auto">
                     <Tabs defaultValue="profile" className="h-full">
-                      <TabsList className="grid w-full grid-cols-3 mx-6 mt-6">
-                        <TabsTrigger value="profile">Profile & Fit</TabsTrigger>
-                        <TabsTrigger value="outreach">Outreach</TabsTrigger>
-                        <TabsTrigger value="interview">Interview</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-3 mx-6 mt-6 bg-background-subtle border border-border">
+                        <TabsTrigger value="profile" className="text-button">Profile & Fit</TabsTrigger>
+                        <TabsTrigger value="outreach" className="text-button">Outreach</TabsTrigger>
+                        <TabsTrigger value="interview" className="text-button">Interview</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="profile" className="p-6 space-y-6">
+                      <TabsContent value="profile" className="p-6 space-y-8">
                         {/* AI-Generated Summary */}
                         <div className="space-y-4">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">AI-Generated Summary</h4>
+                            <h4 className="font-semibold text-body">AI-Generated Summary</h4>
                             <Sparkles className="h-4 w-4 text-primary" />
                           </div>
                           
-                          <div className="bg-background-subtle rounded-lg p-4">
-                            <p className="text-sm text-foreground leading-relaxed">
+                          <div className="bg-background-subtle rounded border border-border p-6">
+                            <p className="text-body text-foreground leading-relaxed">
                               {selectedProspect.aiSummary || 'AI analysis will appear here once prospect is enriched.'}
                             </p>
                           </div>
@@ -484,7 +486,7 @@ Best,
 
                         {/* AI-Generated Fit Score */}
                         <div className="space-y-4">
-                          <h4 className="font-semibold">AI-Generated Fit Score</h4>
+                          <h4 className="font-semibold text-body">AI-Generated Fit Score</h4>
                           
                           {selectedProspect.fitScore && (
                             <div className="space-y-3">
@@ -493,25 +495,25 @@ Best,
                                   selectedProspect.fitScore === 'strong' ? 'bg-green-500' :
                                   selectedProspect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
                                 }`} />
-                                <span className="font-medium text-sm">
+                                <span className="font-medium text-body">
                                   {selectedProspect.fitScore === 'strong' ? 'Strong Fit' :
                                    selectedProspect.fitScore === 'moderate' ? 'Moderate Fit' : 'Weak Fit'}
                                 </span>
-                                <span className="text-muted-foreground text-sm">
+                                <span className="text-foreground-secondary text-body">
                                   - Matches your target segment and shows recent struggle.
                                 </span>
                               </div>
                               
                               {selectedProspect.evidenceOfStruggle && (
-                                <div className="bg-background-subtle rounded-lg p-3">
-                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                                <div className="bg-background-subtle rounded border border-border p-4">
+                                  <p className="text-subtle font-medium text-foreground-secondary uppercase tracking-wide mb-3">
                                     Evidence of Struggle
                                   </p>
-                                  <p className="text-sm text-foreground">
+                                  <p className="text-body text-foreground">
                                     {selectedProspect.evidenceOfStruggle}
                                   </p>
                                   {selectedProspect.evidenceSource && (
-                                    <p className="text-xs text-primary mt-2 cursor-pointer hover:underline">
+                                    <p className="text-subtle text-primary mt-2 cursor-pointer hover:underline">
                                       Source: {selectedProspect.evidenceSource}
                                     </p>
                                   )}
@@ -524,18 +526,18 @@ Best,
                         {/* Contact Information */}
                         {(selectedProspect.email || selectedProspect.company || selectedProspect.jobTitle) && (
                           <div className="space-y-4">
-                            <h4 className="font-semibold">AI-Discovered Contact Info</h4>
+                            <h4 className="font-semibold text-body">AI-Discovered Contact Info</h4>
                             
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {selectedProspect.email && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex items-center gap-3 text-body">
+                                  <Mail className="h-4 w-4 text-foreground-secondary" />
                                   <span className="text-foreground">{selectedProspect.email}</span>
                                 </div>
                               )}
                               {selectedProspect.company && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Globe className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex items-center gap-3 text-body">
+                                  <Globe className="h-4 w-4 text-foreground-secondary" />
                                   <span className="text-foreground">{selectedProspect.jobTitle} at {selectedProspect.company}</span>
                                 </div>
                               )}
@@ -544,21 +546,21 @@ Best,
                         )}
                       </TabsContent>
 
-                      <TabsContent value="outreach" className="p-6 space-y-6">
+                      <TabsContent value="outreach" className="p-6 space-y-8">
                         {/* Personalized Outreach Composer */}
                         <div className="space-y-4">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">Hyper-Personalized Outreach</h4>
+                            <h4 className="font-semibold text-body">Hyper-Personalized Outreach</h4>
                             <Sparkles className="h-4 w-4 text-primary" />
                           </div>
                           
-                          <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line font-mono">
+                          <div className="bg-background-subtle rounded border border-border p-6 text-body font-mono whitespace-pre-line">
                             {generatePersonalizedOutreach(selectedProspect)}
                           </div>
 
                           <Button 
                             onClick={() => handleCopyAndMarkContacted(selectedProspect)}
-                            className="w-full flex items-center gap-2"
+                            className="w-full flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                             disabled={selectedProspect.status !== 'identified'}
                           >
                             <Copy className="h-4 w-4" />
@@ -568,38 +570,38 @@ Best,
 
                         {/* AI Writing Tools */}
                         <div className="space-y-4">
-                          <h4 className="font-semibold">AI Writing Tools</h4>
+                          <h4 className="font-semibold text-body">AI Writing Tools</h4>
                           
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <div className="flex gap-3">
+                            <Button variant="outline" size="sm" className="flex items-center gap-2 text-button border-border">
                               <Sparkles className="h-3 w-3" />
                               Rewrite Casual
                             </Button>
-                            <Button variant="outline" size="sm" className="flex items-center gap-1">
+                            <Button variant="outline" size="sm" className="flex items-center gap-2 text-button border-border">
                               <Sparkles className="h-3 w-3" />
                               Rewrite Formal
                             </Button>
                           </div>
                           
-                          <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
+                          <Button variant="outline" size="sm" className="w-full flex items-center gap-2 text-button border-border">
                             <Sparkles className="h-3 w-3" />
                             Suggest Talking Points
                           </Button>
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="interview" className="p-6 space-y-6">
+                      <TabsContent value="interview" className="p-6 space-y-8">
                         {/* Activity Feed */}
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Interview Notes & Activity</h4>
+                          <h4 className="font-semibold text-body">Interview Notes & Activity</h4>
                           
                           {/* Add Note */}
-                          <div className="flex gap-2">
+                          <div className="flex gap-3">
                             <Textarea
                               placeholder="Add interview notes, call summary, or log an activity..."
                               value={newNote}
                               onChange={(e) => setNewNote(e.target.value)}
-                              className="flex-1 min-h-[100px]"
+                              className="flex-1 min-h-[120px] text-body bg-background-subtle border-border"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && e.metaKey) {
                                   addNote(selectedProspect.id);
@@ -609,20 +611,20 @@ Best,
                             <Button 
                               onClick={() => addNote(selectedProspect.id)}
                               disabled={!newNote.trim()}
-                              className="self-end"
+                              className="self-end bg-primary text-primary-foreground hover:bg-primary/90"
                             >
                               Add
                             </Button>
                           </div>
 
                           {/* Activity List */}
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             {selectedProspect.activities.map((activity) => (
-                              <div key={activity.id} className="flex gap-3 text-sm">
+                              <div key={activity.id} className="flex gap-4 text-body">
                                 <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
                                 <div className="flex-1">
                                   <p className="text-foreground">{activity.message}</p>
-                                  <p className="text-muted-foreground text-xs">
+                                  <p className="text-foreground-secondary text-subtle">
                                     {formatDate(activity.timestamp)}
                                   </p>
                                 </div>
@@ -630,7 +632,7 @@ Best,
                             ))}
                             
                             {selectedProspect.activities.length === 0 && (
-                              <p className="text-muted-foreground text-sm italic">No activity yet. Interview evidence will appear here.</p>
+                              <p className="text-foreground-secondary text-body italic">No activity yet. Interview evidence will appear here.</p>
                             )}
                           </div>
                         </div>
@@ -639,8 +641,8 @@ Best,
                   </div>
 
                   {/* Footer */}
-                  <div className="p-4 border-t border-border bg-muted/30">
-                    <p className="text-xs text-muted-foreground">
+                  <div className="p-6 border-t border-border bg-background-subtle">
+                    <p className="text-subtle text-foreground-secondary">
                       <strong>Remember:</strong> You're a student asking to learn from an expert. The goal is to be curious, not to sell.
                     </p>
                   </div>
@@ -651,11 +653,11 @@ Best,
 
           {/* URL Input Overlay */}
           {showUrlInput && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-card border border-border rounded-lg p-6 w-96 space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Add Prospect</h3>
-                  <p className="text-sm text-muted-foreground">
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+              <div className="bg-card border border-border rounded shadow-2xl p-8 w-96 space-y-6">
+                <div className="space-y-3">
+                  <h3 className="text-section-head">Add Prospect</h3>
+                  <p className="text-foreground-secondary text-body">
                     Enter a LinkedIn profile, company website, or news article URL...
                   </p>
                 </div>
@@ -665,6 +667,7 @@ Best,
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     placeholder="https://linkedin.com/in/prospect..."
+                    className="text-body bg-background-subtle border-border"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -676,11 +679,11 @@ Best,
                     }}
                   />
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Button 
                       onClick={() => enrichProspectFromUrl(urlInput)}
                       disabled={!urlInput.trim()}
-                      className="flex-1"
+                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                       <Sparkles className="h-4 w-4 mr-2" />
                       Enrich with AI
@@ -691,6 +694,7 @@ Best,
                         setShowUrlInput(false);
                         setUrlInput('');
                       }}
+                      className="border-border text-foreground-secondary"
                     >
                       Cancel
                     </Button>
