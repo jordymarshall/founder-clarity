@@ -18,10 +18,9 @@ interface CanvasCard {
 
 interface HypothesisCanvasProps {
   idea: string;
-  onBack?: () => void;
 }
 
-export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
+export function HypothesisCanvas({ idea }: HypothesisCanvasProps) {
   // All state declarations together
   const [inputValue, setInputValue] = useState(idea || '');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -166,28 +165,15 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
   // Render initial state (input form)
   if (!showCanvas) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="max-w-2xl mx-auto px-4 space-y-8">
-          {onBack && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onBack}
-              className="flex items-center gap-2 mb-8"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Ideas
-            </Button>
-          )}
-          
-          <div className="text-center space-y-4">
-            <h1 className="text-page-title">AI-Powered Hypothesis Canvas</h1>
-            <p className="text-foreground-secondary text-lg">
-              Transform your idea into sharp, testable beliefs
-            </p>
-          </div>
+      <div className="max-w-2xl mx-auto px-4 space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-page-title">AI-Powered Hypothesis Canvas</h1>
+          <p className="text-foreground-secondary text-lg">
+            Transform your idea into sharp, testable beliefs
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Input
                 ref={inputRef}
@@ -205,50 +191,34 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
             >
               {isGenerating ? 'Analyzing...' : 'Generate Hypothesis Canvas'}
             </Button>
-          </form>
-        </div>
+        </form>
       </div>
     );
   }
 
   // Render canvas view
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="space-y-4">
-            {onBack && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Ideas
-              </Button>
-            )}
-            <div className="text-center space-y-2">
-              <h1 className="text-page-title">Hypothesis Canvas</h1>
-              <p className="text-foreground-secondary">Your idea, structured for validation</p>
-              <p className="text-sm text-muted-foreground italic">"{inputValue}"</p>
-            </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold">AI-Powered Hypothesis Canvas</h2>
+        <p className="text-muted-foreground">Your idea, structured for validation</p>
+        <p className="text-sm text-muted-foreground italic">"{inputValue}"</p>
+      </div>
+
+      {/* AI Research Status */}
+      {isGenerating && (
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+            Analyzing your idea... Searching for market signals...
           </div>
+        </div>
+      )}
 
-          {/* AI Research Status */}
-          {isGenerating && (
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                Analyzing your idea... Searching for market signals...
-              </div>
-            </div>
-          )}
-
-          {/* Canvas Grid */}
-          <div className="max-w-4xl mx-auto">
-            <div className="grid gap-6 md:grid-cols-2">
+      {/* Canvas Grid */}
+      <div className="max-w-4xl mx-auto">
+        <div className="grid gap-6 md:grid-cols-2">
               {cards.map((card, index) => (
                 <CanvasCard
                   key={card.id}
@@ -261,12 +231,12 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
                   onUpdateDependent={() => handleUpdateDependentCard(card.id)}
                 />
               ))}
-            </div>
-          </div>
+        </div>
+      </div>
 
-          {/* Continuous Discovery Input */}
-          {cards.length > 0 && (
-            <div className="max-w-2xl mx-auto space-y-4">
+      {/* Continuous Discovery Input */}
+      {cards.length > 0 && (
+        <div className="max-w-2xl mx-auto space-y-4">
               <div className="flex gap-2">
                 <Input
                   value={refinementInput}
@@ -287,14 +257,12 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
                 >
                   Refine
                 </Button>
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Try: "Focus more on university students" or "What if the main problem is finding sustainable packaging?"
-              </p>
-            </div>
-          )}
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Try: "Focus more on university students" or "What if the main problem is finding sustainable packaging?"
+          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

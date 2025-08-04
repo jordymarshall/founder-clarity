@@ -12,23 +12,12 @@ interface IdeaWorkflowLayoutProps {
 
 export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
   const [showInterviewScript, setShowInterviewScript] = useState(false);
-  const [activeTab, setActiveTab] = useState('module1');
 
   if (showInterviewScript) {
     return (
       <InterviewScriptScreen 
         idea={idea}
         onBack={() => setShowInterviewScript(false)}
-      />
-    );
-  }
-
-  // Show full-screen Hypothesis Canvas for Module 1
-  if (activeTab === 'module1') {
-    return (
-      <HypothesisCanvas 
-        idea={idea}
-        onBack={onBack}
       />
     );
   }
@@ -55,7 +44,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
         </div>
 
         {/* Workflow Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="module1" className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="module1" className="text-xs">
               1. Deconstruct
@@ -74,7 +63,10 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
             </TabsTrigger>
           </TabsList>
 
-          {/* Module 1: This is now handled by the full-screen HypothesisCanvas component */}
+          {/* Module 1: Hypothesis Canvas */}
+          <TabsContent value="module1" className="space-y-6">
+            <HypothesisCanvas idea={idea} />
+          </TabsContent>
 
           {/* Module 2: Finding Evidence */}
           <TabsContent value="module2" className="space-y-6">
