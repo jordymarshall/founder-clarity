@@ -1,34 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Copy, X, ChevronLeft, Globe, Mail, Sparkles } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface Activity {
+interface CanvasSection {
   id: string;
-  type: 'contacted' | 'note' | 'scheduled' | 'completed';
-  message: string;
-  timestamp: Date;
-}
-
-interface Prospect {
-  id: string;
-  name: string;
-  source: string;
-  status: 'enriching' | 'identified' | 'contacted' | 'scheduled' | 'completed';
-  contactedDate?: Date;
-  activities: Activity[];
-  // AI-enriched data
-  company?: string;
-  jobTitle?: string;
-  email?: string;
-  fitScore?: 'strong' | 'moderate' | 'weak';
-  aiSummary?: string;
-  evidenceOfStruggle?: string;
-  evidenceSource?: string;
+  title: string;
+  content: string;
 }
 
 interface InvestigationCanvasProps {
@@ -37,670 +17,225 @@ interface InvestigationCanvasProps {
 }
 
 export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) {
+  const [showScript, setShowScript] = useState(false);
   const { toast } = useToast();
-  const [prospects, setProspects] = useState<Prospect[]>([
+  const [sections, setSections] = useState<CanvasSection[]>([
     {
-      id: '1',
-      name: 'Maria Rodriguez',
-      source: 'linkedin.com/in/maria-rodriguez',
-      status: 'identified',
-      activities: [],
-      company: 'The Daily Grind',
-      jobTitle: 'Owner',
-      email: 'maria@thedailygrind.com',
-      fitScore: 'strong',
-      aiSummary: 'Maria Rodriguez, owner of The Daily Grind, fits your Customer Segment: Small, independent coffee shop owners. Recent blog posts indicate a focus on community events, suggesting a potential struggle with attracting new, regular customers.',
-      evidenceOfStruggle: "Company blog post from July 15, 2025, titled 'Our New Fall Events Lineup' shows investment in non-digital marketing efforts to solve the JTBD.",
-      evidenceSource: 'Blog post: Our New Fall Events Lineup'
+      id: 'customer-segment',
+      title: 'Customer Segment',
+      content: 'Early-stage startup founders who struggle with product-market fit and waste time building features nobody wants.'
     },
     {
-      id: '2',
-      name: 'David Chen',
-      source: 'LinkedIn',
-      status: 'completed',
-      contactedDate: new Date('2025-07-28'),
-      activities: [
-        {
-          id: '1',
-          type: 'contacted',
-          message: 'You contacted David Chen',
-          timestamp: new Date('2025-07-28')
-        }
-      ],
-      company: 'Corner Coffee Co.',
-      jobTitle: 'Founder',
-      email: 'david@cornercoffee.com',
-      fitScore: 'moderate',
-      aiSummary: 'David Chen founded Corner Coffee Co. 2 years ago. Shows some alignment with customer segment but limited evidence of current struggle.',
-      evidenceOfStruggle: 'Recent LinkedIn post about hiring challenges suggests focus on operations rather than customer acquisition.',
-      evidenceSource: 'LinkedIn post: Hiring Update'
+      id: 'problem',
+      title: 'The Problem',
+      content: 'Founders often build based on assumptions rather than validated customer problems, leading to failed products and wasted resources.'
     },
     {
-      id: '3',
-      name: 'Sarah Jenkins',
-      source: 'Referral',
-      status: 'scheduled',
-      contactedDate: new Date('2025-08-01'),
-      activities: [
-        {
-          id: '1',
-          type: 'contacted',
-          message: 'You contacted Sarah Jenkins',
-          timestamp: new Date('2025-08-01')
-        }
-      ],
-      company: 'Roasted Dreams',
-      jobTitle: 'Co-owner',
-      email: 'sarah@roasteddreams.cafe',
-      fitScore: 'strong',
-      aiSummary: 'Sarah Jenkins co-owns Roasted Dreams, a 18-month-old coffee shop. Perfect fit for customer segment with clear evidence of JTBD struggle.',
-      evidenceOfStruggle: 'Recent Yelp reviews mention slow business during weekdays. Owner actively seeking marketing solutions.',
-      evidenceSource: 'Yelp business profile analysis'
+      id: 'current-solutions',
+      title: 'Current Solutions',
+      content: 'Basic survey tools, expensive consultants, trial and error approach, or following generic startup advice from books.'
+    },
+    {
+      id: 'hypothesis',
+      title: 'Solution Hypothesis',
+      content: 'An AI-powered coach that guides founders through systematic customer discovery with templates, analysis, and actionable insights.'
     }
   ]);
-  
-  const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
-  const [focusedIndex, setFocusedIndex] = useState(0);
-  const [newNote, setNewNote] = useState('');
-  const [editingProspect, setEditingProspect] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Mock data from Module 1
-  const customerSegment = "Coffee shop owners 1-3 years in business";
-  const jtbd = "Attracting new customers to grow the business";
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedProspectId) return; // Don't handle navigation when focus panel is open
-      
-      if ((e.key === 'n' || e.key === 'N') && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        addProspect();
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusedIndex(prev => Math.min(prev + 1, prospects.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedIndex(prev => Math.max(prev - 1, 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (prospects[focusedIndex]) {
-          setSelectedProspectId(prospects[focusedIndex].id);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [prospects, focusedIndex, selectedProspectId]);
-
-  const [urlInput, setUrlInput] = useState('');
-  const [showUrlInput, setShowUrlInput] = useState(false);
-
-  const addProspect = () => {
-    setShowUrlInput(true);
-  };
-
-  const enrichProspectFromUrl = async (url: string) => {
-    if (!url.trim()) return;
-    
-    const newProspect: Prospect = {
-      id: Date.now().toString(),
-      name: 'Enriching...',
-      source: url,
-      status: 'enriching',
-      activities: []
-    };
-    
-    setProspects(prev => [newProspect, ...prev]);
-    setFocusedIndex(0);
-    setUrlInput('');
-    setShowUrlInput(false);
-    
-    // Simulate AI enrichment (replace with actual API calls)
-    setTimeout(() => {
-      const enrichedData = mockEnrichProspect(url);
-      setProspects(prev => prev.map(p => 
-        p.id === newProspect.id ? { ...p, ...enrichedData, status: 'identified' } : p
-      ));
-    }, 2000);
-  };
-
-  const mockEnrichProspect = (url: string): Partial<Prospect> => {
-    // Mock AI-enriched data - replace with actual API integration
-    if (url.includes('linkedin')) {
-      return {
-        name: 'Maria Rodriguez',
-        company: 'The Daily Grind',
-        jobTitle: 'Owner',
-        email: 'maria@thedailygrind.com',
-        fitScore: 'strong',
-        aiSummary: 'Maria Rodriguez, owner of The Daily Grind, fits your Customer Segment: Small, independent coffee shop owners. Recent blog posts indicate a focus on community events, suggesting a potential struggle with attracting new, regular customers.',
-        evidenceOfStruggle: "Company blog post from July 15, 2025, titled 'Our New Fall Events Lineup' shows investment in non-digital marketing efforts to solve the JTBD.",
-        evidenceSource: 'Blog post: Our New Fall Events Lineup'
-      };
-    }
-    
-    return {
-      name: 'Extracted Contact',
-      company: 'Company Name',
-      jobTitle: 'Position',
-      fitScore: 'moderate',
-      aiSummary: 'AI-generated prospect summary based on URL analysis.',
-      evidenceOfStruggle: 'Evidence of struggle based on content analysis.',
-      evidenceSource: 'Website content analysis'
-    };
-  };
-
-  const updateProspect = (id: string, field: keyof Prospect, value: any) => {
-    setProspects(prev => prev.map(prospect => 
-      prospect.id === id ? { ...prospect, [field]: value } : prospect
+  const updateSection = (id: string, content: string) => {
+    setSections(prev => prev.map(section => 
+      section.id === id ? { ...section, content } : section
     ));
   };
 
-  const addActivity = (prospectId: string, activity: Omit<Activity, 'id'>) => {
-    const newActivity: Activity = {
-      ...activity,
-      id: Date.now().toString()
-    };
-    
-    setProspects(prev => prev.map(prospect => 
-      prospect.id === prospectId 
-        ? { ...prospect, activities: [newActivity, ...prospect.activities] }
-        : prospect
-    ));
+  const handleGenerateScript = () => {
+    setShowScript(true);
   };
 
-  const handleCopyAndMarkContacted = async (prospect: Prospect) => {
-    const template = generateOutreachTemplate(prospect.name);
+  const generateInterviewScript = () => {
+    const customerSegment = sections.find(s => s.id === 'customer-segment')?.content || '';
+    const problem = sections.find(s => s.id === 'problem')?.content || '';
+    const currentSolutions = sections.find(s => s.id === 'current-solutions')?.content || '';
     
+    return `# Customer Problem Discovery Interview Script
+
+## Pre-Interview Setup
+**Duration:** 30-45 minutes
+**Goal:** Understand the customer's real-world experience and validate our problem hypothesis
+
+## 1. Frame the Encounter (2-3 minutes)
+
+"Thank you for taking the time to speak with me today. I want to be completely transparent about why we're talking. I'm doing research to understand how people like yourself currently handle [the problem area]. This is purely research - I'm not here to pitch or sell you anything. I'm genuinely interested in learning from your experience, and there are no wrong answers. Does that sound good?"
+
+## 2. Establish the Anchor (5 minutes)
+
+**Goal:** Ground the conversation in specific, recent behavior
+
+"To help me understand your world, could you tell me what you're currently using or doing to ${problem.toLowerCase().replace(/\.$/, '')}?"
+
+**Listen for:** Their current solution (existing alternative)
+**Follow-up:** "When did you start using [their solution]?" / "Can you remember roughly when that was?"
+
+## 3. Reconstruct the Backstory (10-15 minutes)
+
+**Goal:** Work backward to find their switching trigger
+
+"Can you take me back to the time *before* you started using [their current solution]?"
+
+**Hunt for the Switching Trigger:**
+- "When was the first time you realized you needed a new approach?"
+- "What prompted you to look for a solution?"
+- "Do you remember what was happening in your business/life at that time?"
+
+**Quantify What's at Stake:**
+- "What would have happened if you had done nothing?"
+- "What were you worried about?"
+
+**Explore Consideration Set:**
+- "What other options did you consider?"
+- "How did you evaluate your choices?"
+
+## 4. Explore the Experience (10-15 minutes)
+
+**Goal:** Find friction points in their current process
+
+"Can you walk me through how you typically use [their current solution]?"
+
+**Listen for friction points:**
+- Steps that seem cumbersome
+- Workarounds they've created
+- Things that take longer than expected
+- Frustrations or pet peeves
+
+**Measure the gap:**
+- "When you first started, what were you hoping to achieve?"
+- "How has [their solution] lived up to those expectations?"
+- "What's working well? What's not working as well as you'd hoped?"
+
+## 5. Conclude and Open the Door (2-3 minutes)
+
+"This has been incredibly helpful. Based on what you've shared, I'm exploring the idea of ${sections.find(s => s.id === 'hypothesis')?.content?.toLowerCase() || 'a solution that addresses these challenges'}. 
+
+Would it be okay if I followed up with you as this develops? And do you know anyone else in your network who might have similar experiences and would be willing to share their perspective?"
+
+## Post-Interview Action Items
+
+1. **Immediately debrief** (within 15 minutes):
+   - Fill out Customer Forces Canvas
+   - Note key quotes and friction points
+   - Identify patterns compared to previous interviews
+
+2. **Look for patterns across interviews:**
+   - Common switching triggers
+   - Shared friction points  
+   - Similar existing alternatives
+   - Recurring desired outcomes
+
+## Key Questions Bank
+
+**For deeper exploration:**
+- "Help me understand what you mean by [their term]"
+- "Can you give me a specific example?"
+- "Walk me through that process step by step"
+- "How did that make you feel?"
+- "What did you do next?"
+- "Who else was involved in that decision?"
+
+**Remember:** Stay curious, listen more than you talk, and dig into specific stories rather than general opinions.`;
+  };
+
+  const handleCopyScript = async () => {
+    const script = generateInterviewScript();
     try {
-      await navigator.clipboard.writeText(template);
-      
-      // Update status and add activity
-      const now = new Date();
-      setProspects(prev => prev.map(p => 
-        p.id === prospect.id 
-          ? { 
-              ...p, 
-              status: 'contacted' as const,
-              contactedDate: now
-            }
-          : p
-      ));
-      
-      addActivity(prospect.id, {
-        type: 'contacted',
-        message: `You contacted ${prospect.name}`,
-        timestamp: now
-      });
-      
+      await navigator.clipboard.writeText(script);
       toast({
-        title: "Success!",
-        description: `Message copied and ${prospect.name} marked as contacted.`,
+        title: "Interview script copied!",
+        description: "The script has been copied to your clipboard.",
       });
     } catch (err) {
       toast({
         title: "Copy failed",
-        description: "Please copy the template manually.",
+        description: "Please copy the script manually.",
         variant: "destructive",
       });
     }
   };
 
-  const addNote = (prospectId: string) => {
-    if (!newNote.trim()) return;
-    
-    addActivity(prospectId, {
-      type: 'note',
-      message: newNote,
-      timestamp: new Date()
-    });
-    
-    setNewNote('');
-  };
-
-  const generateOutreachTemplate = (prospectName: string) => {
-    return `Subject: Research into the world of ${customerSegment}
-
-Hi ${prospectName},
-
-My name is [Your Name], and I'm currently researching the process that ${customerSegment}s use for ${jtbd}.
-
-My goal is simply to learn from people with firsthand experience like you. This is not a sales pitch.
-
-Would you be open to a 30-minute chat in the next week to share your perspective? As a thank you, I can offer a $50 gift card.
-
-Best,
-[Your Name]`;
-  };
-
-  const generatePersonalizedOutreach = (prospect: Prospect) => {
-    if (prospect.evidenceSource) {
-      return `Subject: Research into the world of ${customerSegment}
-
-Hi ${prospect.name},
-
-I saw your recent ${prospect.evidenceSource.toLowerCase()} - ${prospect.evidenceOfStruggle?.split('.')[0]}. It's great to see how you're thinking about ${jtbd.toLowerCase()}.
-
-My name is [Your Name], and I'm currently researching how ${customerSegment}s approach ${jtbd}. Your experience with ${prospect.company || 'your business'} would provide valuable insights.
-
-My goal is simply to learn from people with firsthand experience like you. This is not a sales pitch.
-
-Would you be open to a 30-minute chat in the next week to share your perspective? As a thank you, I can offer a $50 gift card.
-
-Best,
-[Your Name]`;
-    }
-    
-    return generateOutreachTemplate(prospect.name);
-  };
-
-  const getStatusColor = (status: Prospect['status']) => {
-    switch (status) {
-      case 'identified': return 'text-muted-foreground';
-      case 'contacted': return 'text-blue-600';
-      case 'scheduled': return 'text-purple-600';
-      case 'completed': return 'text-green-600';
-      default: return 'text-muted-foreground';
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
-
-  const selectedProspect = prospects.find(p => p.id === selectedProspectId);
-
   return (
-    <div className="min-h-screen bg-background" ref={containerRef}>
-      <div className="container mx-auto py-8">
-        {/* Header */}
-        <div className="space-y-4 mb-8">
-          {onBack && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Ideas
-            </Button>
-          )}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-page-title">Module 2: The Search for Evidence</h1>
-              <p className="text-foreground-secondary">Find real people to test your beliefs with.</p>
-            </div>
-            <Button onClick={addProspect} className="flex items-center gap-2">
-              + Add Prospect
-            </Button>
-          </div>
-        </div>
-
-        <div className="relative">
-          {/* Command Center - Prospect List */}
-          <div className={`transition-all duration-300 ${selectedProspectId ? 'opacity-75' : ''}`}>
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-3 mb-2">
-              <div className="col-span-1">FIT</div>
-              <div className="col-span-5">PROSPECT</div>
-              <div className="col-span-2">CONTACTED</div>
-              <div className="col-span-4">SOURCE</div>
-            </div>
-
-            {/* Prospect Rows */}
-            <div className="space-y-1">
-              {prospects.map((prospect, index) => (
-                <div
-                  key={prospect.id}
-                  className={`grid grid-cols-12 gap-4 py-3 px-2 rounded-lg cursor-pointer transition-colors ${
-                    focusedIndex === index ? 'bg-muted' : 'hover:bg-muted/50'
-                  } ${selectedProspectId === prospect.id ? 'bg-primary/10' : ''}`}
-                  onClick={() => setSelectedProspectId(prospect.id)}
-                >
-                  <div className="col-span-1 flex items-center">
-                    {prospect.fitScore && prospect.status !== 'enriching' ? (
-                      <div className={`w-2 h-2 rounded-full ${
-                        prospect.fitScore === 'strong' ? 'bg-green-500' :
-                        prospect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
-                      }`} />
-                    ) : prospect.status === 'enriching' ? (
-                      <div className="w-2 h-2 rounded-full bg-muted animate-pulse" />
-                    ) : null}
-                  </div>
-                  <div className="col-span-5">
-                    {editingProspect === prospect.id ? (
-                      <Input
-                        value={prospect.name}
-                        onChange={(e) => updateProspect(prospect.id, 'name', e.target.value)}
-                        onBlur={() => setEditingProspect(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === 'Tab') {
-                            setEditingProspect(null);
-                          }
-                        }}
-                        className="border-0 bg-transparent px-0 focus-visible:ring-0"
-                        placeholder="Prospect name"
-                        autoFocus
-                      />
-                    ) : (
-                      <span 
-                        className={`font-medium cursor-text ${prospect.status === 'enriching' ? 'animate-pulse' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingProspect(prospect.id);
-                        }}
-                      >
-                        {prospect.name || 'Untitled Prospect'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="col-span-2 text-sm text-muted-foreground flex items-center justify-center">
-                    {prospect.contactedDate ? (
-                      <span className="text-green-500">✓</span>
-                    ) : (
-                      <span className="text-red-500">✗</span>
-                    )}
-                  </div>
-                  <div className="col-span-4 text-sm text-muted-foreground truncate">
-                    {prospect.source || '-'}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {prospects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  Press <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘+N</kbd> to add your first prospect
-                </p>
-              </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-12">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="space-y-4">
+            {onBack && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Ideas
+              </Button>
             )}
+            <div className="text-center space-y-2">
+              <h1 className="text-page-title">Investigation Canvas</h1>
+              <p className="text-foreground-secondary">Structure your idea for systematic validation</p>
+              <p className="text-sm text-muted-foreground italic">"{idea}"</p>
+            </div>
           </div>
 
-          {/* Centered Modal for Focus View */}
-          {selectedProspect && (
-            <>
-              {/* Backdrop */}
-              <div 
-                className="fixed inset-0 bg-black/50 z-40"
-                onClick={() => setSelectedProspectId(null)}
-              />
-              
-              {/* Centered Modal */}
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="bg-card border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between p-6 border-b border-border">
-                    <div className="flex items-center gap-3">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setSelectedProspectId(null)}
-                        className="flex items-center gap-1"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <h3 className="text-xl font-semibold">{selectedProspect.name}</h3>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setSelectedProspectId(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto">
-                    <Tabs defaultValue="profile" className="h-full">
-                      <TabsList className="grid w-full grid-cols-3 mx-6 mt-6">
-                        <TabsTrigger value="profile">Profile & Fit</TabsTrigger>
-                        <TabsTrigger value="outreach">Outreach</TabsTrigger>
-                        <TabsTrigger value="interview">Interview</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="profile" className="p-6 space-y-6">
-                        {/* AI-Generated Summary */}
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">AI-Generated Summary</h4>
-                            <Sparkles className="h-4 w-4 text-primary" />
-                          </div>
-                          
-                          <div className="bg-background-subtle rounded-lg p-4">
-                            <p className="text-sm text-foreground leading-relaxed">
-                              {selectedProspect.aiSummary || 'AI analysis will appear here once prospect is enriched.'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* AI-Generated Fit Score */}
-                        <div className="space-y-4">
-                          <h4 className="font-semibold">AI-Generated Fit Score</h4>
-                          
-                          {selectedProspect.fitScore && (
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  selectedProspect.fitScore === 'strong' ? 'bg-green-500' :
-                                  selectedProspect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
-                                }`} />
-                                <span className="font-medium text-sm">
-                                  {selectedProspect.fitScore === 'strong' ? 'Strong Fit' :
-                                   selectedProspect.fitScore === 'moderate' ? 'Moderate Fit' : 'Weak Fit'}
-                                </span>
-                                <span className="text-muted-foreground text-sm">
-                                  - Matches your target segment and shows recent struggle.
-                                </span>
-                              </div>
-                              
-                              {selectedProspect.evidenceOfStruggle && (
-                                <div className="bg-background-subtle rounded-lg p-3">
-                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                                    Evidence of Struggle
-                                  </p>
-                                  <p className="text-sm text-foreground">
-                                    {selectedProspect.evidenceOfStruggle}
-                                  </p>
-                                  {selectedProspect.evidenceSource && (
-                                    <p className="text-xs text-primary mt-2 cursor-pointer hover:underline">
-                                      Source: {selectedProspect.evidenceSource}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Contact Information */}
-                        {(selectedProspect.email || selectedProspect.company || selectedProspect.jobTitle) && (
-                          <div className="space-y-4">
-                            <h4 className="font-semibold">AI-Discovered Contact Info</h4>
-                            
-                            <div className="space-y-2">
-                              {selectedProspect.email && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-foreground">{selectedProspect.email}</span>
-                                </div>
-                              )}
-                              {selectedProspect.company && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Globe className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-foreground">{selectedProspect.jobTitle} at {selectedProspect.company}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                      <TabsContent value="outreach" className="p-6 space-y-6">
-                        {/* Personalized Outreach Composer */}
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold">Hyper-Personalized Outreach</h4>
-                            <Sparkles className="h-4 w-4 text-primary" />
-                          </div>
-                          
-                          <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line font-mono">
-                            {generatePersonalizedOutreach(selectedProspect)}
-                          </div>
-
-                          <Button 
-                            onClick={() => handleCopyAndMarkContacted(selectedProspect)}
-                            className="w-full flex items-center gap-2"
-                            disabled={selectedProspect.status !== 'identified'}
-                          >
-                            <Copy className="h-4 w-4" />
-                            {selectedProspect.status === 'identified' ? 'Copy & Mark as Contacted' : 'Already Contacted'}
-                          </Button>
-                        </div>
-
-                        {/* AI Writing Tools */}
-                        <div className="space-y-4">
-                          <h4 className="font-semibold">AI Writing Tools</h4>
-                          
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex items-center gap-1">
-                              <Sparkles className="h-3 w-3" />
-                              Rewrite Casual
-                            </Button>
-                            <Button variant="outline" size="sm" className="flex items-center gap-1">
-                              <Sparkles className="h-3 w-3" />
-                              Rewrite Formal
-                            </Button>
-                          </div>
-                          
-                          <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" />
-                            Suggest Talking Points
-                          </Button>
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="interview" className="p-6 space-y-6">
-                        {/* Activity Feed */}
-                        <div className="space-y-4">
-                          <h4 className="font-semibold">Interview Notes & Activity</h4>
-                          
-                          {/* Add Note */}
-                          <div className="flex gap-2">
-                            <Textarea
-                              placeholder="Add interview notes, call summary, or log an activity..."
-                              value={newNote}
-                              onChange={(e) => setNewNote(e.target.value)}
-                              className="flex-1 min-h-[100px]"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.metaKey) {
-                                  addNote(selectedProspect.id);
-                                }
-                              }}
-                            />
-                            <Button 
-                              onClick={() => addNote(selectedProspect.id)}
-                              disabled={!newNote.trim()}
-                              className="self-end"
-                            >
-                              Add
-                            </Button>
-                          </div>
-
-                          {/* Activity List */}
-                          <div className="space-y-3">
-                            {selectedProspect.activities.map((activity) => (
-                              <div key={activity.id} className="flex gap-3 text-sm">
-                                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                                <div className="flex-1">
-                                  <p className="text-foreground">{activity.message}</p>
-                                  <p className="text-muted-foreground text-xs">
-                                    {formatDate(activity.timestamp)}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            
-                            {selectedProspect.activities.length === 0 && (
-                              <p className="text-muted-foreground text-sm italic">No activity yet. Interview evidence will appear here.</p>
-                            )}
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="p-4 border-t border-border bg-muted/30">
-                    <p className="text-xs text-muted-foreground">
-                      <strong>Remember:</strong> You're a student asking to learn from an expert. The goal is to be curious, not to sell.
-                    </p>
-                  </div>
-                </div>
+          {/* Canvas Sections */}
+          <div className="max-w-3xl mx-auto space-y-6">
+            {sections.map((section) => (
+              <div key={section.id} className="space-y-3">
+                <h3 className="text-subtle uppercase tracking-wide">{section.title}</h3>
+                <Textarea
+                  value={section.content}
+                  onChange={(e) => updateSection(section.id, e.target.value)}
+                  className="min-h-[100px] bg-card border-0 resize-none text-body leading-relaxed focus:ring-2 focus:ring-primary/20"
+                  placeholder={`Describe the ${section.title.toLowerCase()}...`}
+                />
               </div>
-            </>
-          )}
+            ))}
+          </div>
 
-          {/* URL Input Overlay */}
-          {showUrlInput && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-card border border-border rounded-lg p-6 w-96 space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Add Prospect</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Enter a LinkedIn profile, company website, or news article URL...
-                  </p>
-                </div>
-                
-                <div className="space-y-4">
-                  <Input
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://linkedin.com/in/prospect..."
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        enrichProspectFromUrl(urlInput);
-                      } else if (e.key === 'Escape') {
-                        setShowUrlInput(false);
-                        setUrlInput('');
-                      }
-                    }}
-                  />
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => enrichProspectFromUrl(urlInput)}
-                      disabled={!urlInput.trim()}
-                      className="flex-1"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Enrich with AI
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        setShowUrlInput(false);
-                        setUrlInput('');
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Generate Script CTA */}
+          <div className="max-w-3xl mx-auto pt-8">
+            <Button 
+              onClick={handleGenerateScript}
+              className="w-full py-3 text-base font-medium"
+            >
+              Generate Interview Script
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Interview Script Dialog */}
+      <Dialog open={showScript} onOpenChange={setShowScript}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              Customer Discovery Interview Script
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyScript}
+                className="flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copy Script
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono bg-muted p-4 rounded-lg">
+              {generateInterviewScript()}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
