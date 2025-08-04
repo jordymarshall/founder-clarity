@@ -18,14 +18,15 @@ interface CanvasCard {
 
 interface HypothesisCanvasProps {
   idea: string;
+  isInitialized?: boolean;
+  onInitialized?: () => void;
 }
 
-export function HypothesisCanvas({ idea }: HypothesisCanvasProps) {
+export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }: HypothesisCanvasProps) {
   // All state declarations together
   const [inputValue, setInputValue] = useState(idea || '');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(isInitialized);
   const [refinementInput, setRefinementInput] = useState('');
   const [cards, setCards] = useState<CanvasCard[]>([]);
   const [editingCard, setEditingCard] = useState<string | null>(null);
@@ -156,11 +157,11 @@ export function HypothesisCanvas({ idea }: HypothesisCanvasProps) {
   }, [showCanvas]);
 
   useEffect(() => {
-    if (idea && !hasInitialized) {
-      setHasInitialized(true);
+    if (idea && !isInitialized) {
       handleGenerateCanvas(idea);
+      onInitialized?.();
     }
-  }, [idea, hasInitialized]);
+  }, [idea, isInitialized, onInitialized]);
 
   // Render initial state (input form)
   if (!showCanvas) {
