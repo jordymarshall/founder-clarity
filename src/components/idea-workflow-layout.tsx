@@ -12,6 +12,7 @@ interface IdeaWorkflowLayoutProps {
 
 export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
   const [showInterviewScript, setShowInterviewScript] = useState(false);
+  const [canvasKey] = useState(() => `canvas-${idea}-${Date.now()}`);
 
   if (showInterviewScript) {
     return (
@@ -65,7 +66,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
 
           {/* Module 1: Hypothesis Canvas */}
           <TabsContent value="module1" className="space-y-6">
-            <HypothesisCanvas idea={idea} />
+            <HypothesisCanvas key={canvasKey} idea={idea} />
           </TabsContent>
 
           {/* Module 2: Finding Evidence */}
