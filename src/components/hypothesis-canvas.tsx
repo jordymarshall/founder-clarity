@@ -22,6 +22,7 @@ interface HypothesisCanvasProps {
 }
 
 export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
+  // All state declarations together
   const [inputValue, setInputValue] = useState(idea || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
@@ -31,21 +32,7 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus input on mount
-  useEffect(() => {
-    if (!showCanvas && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [showCanvas]);
-
-  // Initialize canvas when idea is provided
-  useEffect(() => {
-    if (idea && !hasInitialized) {
-      setHasInitialized(true);
-      handleGenerateCanvas(idea);
-    }
-  }, [idea, hasInitialized]);
-
+  // Mock AI analysis function
   const mockAnalyzeIdea = async (ideaText: string): Promise<CanvasCard[]> => {
     // Simulate AI analysis delay
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -86,6 +73,7 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
     ];
   };
 
+  // Canvas generation function
   const handleGenerateCanvas = async (ideaText: string) => {
     setIsGenerating(true);
     setShowCanvas(true);
@@ -105,30 +93,7 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim()) {
-      setCards([]); // Clear existing cards
-      handleGenerateCanvas(inputValue.trim());
-    }
-  };
-
-  const handleCardEdit = (cardId: string, newContent: string) => {
-    setCards(prev => prev.map(card => {
-      if (card.id === cardId) {
-        // Mark dependent cards as needing updates
-        const updatedCards = prev.map(c => ({
-          ...c,
-          needsUpdate: card.dependsOn?.includes(cardId) || c.dependsOn?.includes(cardId)
-        }));
-        
-        return { ...card, content: newContent, aiGenerated: false };
-      }
-      return card;
-    }));
-    setEditingCard(null);
-  };
-
+  // Refinement function
   const handleRefineCanvas = async () => {
     if (!refinementInput.trim()) return;
     
@@ -147,6 +112,23 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
     setIsGenerating(false);
   };
 
+  // Card editing functions
+  const handleCardEdit = (cardId: string, newContent: string) => {
+    setCards(prev => prev.map(card => {
+      if (card.id === cardId) {
+        // Mark dependent cards as needing updates
+        const updatedCards = prev.map(c => ({
+          ...c,
+          needsUpdate: card.dependsOn?.includes(cardId) || c.dependsOn?.includes(cardId)
+        }));
+        
+        return { ...card, content: newContent, aiGenerated: false };
+      }
+      return card;
+    }));
+    setEditingCard(null);
+  };
+
   const handleUpdateDependentCard = async (cardId: string) => {
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -158,6 +140,30 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
     setIsGenerating(false);
   };
 
+  // Form submission handler
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      setCards([]); // Clear existing cards
+      handleGenerateCanvas(inputValue.trim());
+    }
+  };
+
+  // Effects
+  useEffect(() => {
+    if (!showCanvas && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showCanvas]);
+
+  useEffect(() => {
+    if (idea && !hasInitialized) {
+      setHasInitialized(true);
+      handleGenerateCanvas(idea);
+    }
+  }, [idea, hasInitialized]);
+
+  // Render initial state (input form)
   if (!showCanvas) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -205,6 +211,7 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
     );
   }
 
+  // Render canvas view
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
@@ -292,6 +299,7 @@ export function HypothesisCanvas({ idea, onBack }: HypothesisCanvasProps) {
   );
 }
 
+// Canvas Card Component
 interface CanvasCardProps {
   card: CanvasCard;
   index: number;
@@ -325,8 +333,6 @@ function CanvasCard({ card, index, isEditing, onEdit, onSave, onCancel, onUpdate
         animationFillMode: 'both'
       }}
     >
-      {/* Connection Lines - would be implemented with SVG in full version */}
-      
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-subtle uppercase tracking-wide">{card.title}</h3>
