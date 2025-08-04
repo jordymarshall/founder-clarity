@@ -41,8 +41,8 @@ const Index = () => {
 
   return (
     <AppLayout>
-      {/* Header with sign out - constrained width */}
-      <div className="max-w-4xl mx-auto py-8 px-4">
+      {/* Header with sign out - same width as workflow */}
+      <div className="max-w-6xl mx-auto py-8 px-6">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-semibold">StartupDetective</h1>
