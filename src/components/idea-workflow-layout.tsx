@@ -64,50 +64,50 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
           </TabsList>
 
           {/* Module 1: Deconstructing Ideas */}
-          <TabsContent value="module1" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Module 1: Deconstructing Your Idea</h2>
-                <p className="text-muted-foreground">Translate your idea into testable beliefs</p>
+          <TabsContent value="module1" className="space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8 px-6">
+              <div className="text-center space-y-3">
+                <h2 className="text-2xl font-semibold">Module 1: Deconstructing Your Idea</h2>
+                <p className="text-muted-foreground text-lg">Translate your idea into testable beliefs</p>
               </div>
               
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Customer Segments</h3>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Broad Customer Segment:</p>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+              <div className="grid gap-8 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h3 className="font-medium text-lg">Customer Segments</h3>
+                  <div className="p-6 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">Broad Customer Segment:</p>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [Who is your target market?]
                     </div>
                   </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Early Adopter Segment:</p>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                  <div className="p-6 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">Early Adopter Segment:</p>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [Who feels this problem most intensely?]
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="font-medium">Problem Definition</h3>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Core Problem:</p>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                <div className="space-y-4">
+                  <h3 className="font-medium text-lg">Problem Definition</h3>
+                  <div className="p-6 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">Core Problem:</p>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [What prevents them from achieving their desired outcome?]
                     </div>
                   </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Existing Alternatives:</p>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                  <div className="p-6 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">Existing Alternatives:</p>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [What are they currently doing to solve this?]
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium mb-3">Job to be Done (JTBD)</h3>
-                <div className="min-h-[80px] bg-muted rounded p-3 text-sm">
+              <div className="p-6 border rounded-lg">
+                <h3 className="font-medium mb-4 text-lg">Job to be Done (JTBD)</h3>
+                <div className="min-h-[100px] bg-muted rounded p-4 text-sm">
                   [What is the customer ultimately trying to accomplish?]
                 </div>
               </div>
@@ -120,37 +120,37 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
           </TabsContent>
 
           {/* Module 3: Problem Discovery */}
-          <TabsContent value="module3" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Module 3: Problem Discovery Interviews</h2>
-                <p className="text-muted-foreground">Execute structured customer conversations</p>
+          <TabsContent value="module3" className="space-y-8">
+            <div className="max-w-5xl mx-auto space-y-8 px-6">
+              <div className="text-center space-y-3">
+                <h2 className="text-2xl font-semibold">Module 3: Problem Discovery Interviews</h2>
+                <p className="text-muted-foreground text-lg">Execute structured customer conversations</p>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Interview Framework</h3>
+              <div className="space-y-6">
+                <div className="p-6 border rounded-lg">
+                  <h3 className="font-medium mb-4 text-lg">Interview Framework</h3>
                   <div className="grid gap-4 text-sm">
-                    <div className="p-3 bg-muted rounded">
+                    <div className="p-4 bg-muted rounded">
                       <strong>1. Frame (2-3 min):</strong> Establish trust and learning context
                     </div>
-                    <div className="p-3 bg-muted rounded">
+                    <div className="p-4 bg-muted rounded">
                       <strong>2. Anchor (5 min):</strong> Ground in specific recent behavior
                     </div>
-                    <div className="p-3 bg-muted rounded">
+                    <div className="p-4 bg-muted rounded">
                       <strong>3. Backstory (10-15 min):</strong> Find switching triggers
                     </div>
-                    <div className="p-3 bg-muted rounded">
+                    <div className="p-4 bg-muted rounded">
                       <strong>4. Experience (10-15 min):</strong> Explore current solution friction
                     </div>
-                    <div className="p-3 bg-muted rounded">
+                    <div className="p-4 bg-muted rounded">
                       <strong>5. Conclude (2-3 min):</strong> Thank and ask for referrals
                     </div>
                   </div>
                 </div>
 
                 <Button 
-                  className="w-full"
+                  className="w-full max-w-md mx-auto"
                   onClick={() => setShowInterviewScript(true)}
                 >
                   Generate Interview Script
@@ -160,47 +160,47 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
           </TabsContent>
 
           {/* Module 4: Synthesizing Truth */}
-          <TabsContent value="module4" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Module 4: Synthesizing Truth</h2>
-                <p className="text-muted-foreground">Turn interview data into actionable insights</p>
+          <TabsContent value="module4" className="space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8 px-6">
+              <div className="text-center space-y-3">
+                <h2 className="text-2xl font-semibold">Module 4: Synthesizing Truth</h2>
+                <p className="text-muted-foreground text-lg">Turn interview data into actionable insights</p>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Customer Forces Canvas</h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+              <div className="space-y-6">
+                <div className="p-6 border rounded-lg">
+                  <h3 className="font-medium mb-4 text-lg">Customer Forces Canvas</h3>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-3">
                       <label className="text-sm font-medium">Push Forces:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                         [Switching triggers & problems]
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <label className="text-sm font-medium">Pull Forces:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                         [Desired outcomes]
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <label className="text-sm font-medium">Inertia:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                         [Resistance to change]
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <label className="text-sm font-medium">Friction:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                      <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                         [Pain points with current solution]
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Pattern Recognition</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
+                <div className="p-6 border rounded-lg">
+                  <h3 className="font-medium mb-4 text-lg">Pattern Recognition</h3>
+                  <div className="min-h-[120px] bg-muted rounded p-4 text-sm">
                     [What common patterns emerge across interviews?]
                   </div>
                 </div>
@@ -209,39 +209,39 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
           </TabsContent>
 
           {/* Module 5: Designing the Offer */}
-          <TabsContent value="module5" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Module 5: Designing the Offer</h2>
-                <p className="text-muted-foreground">Create a compelling value proposition</p>
+          <TabsContent value="module5" className="space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8 px-6">
+              <div className="text-center space-y-3">
+                <h2 className="text-2xl font-semibold">Module 5: Designing the Offer</h2>
+                <p className="text-muted-foreground text-lg">Create a compelling value proposition</p>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Unique Value Proposition</h3>
-                  <div className="min-h-[80px] bg-muted rounded p-3 text-sm">
+              <div className="space-y-6">
+                <div className="p-6 border rounded-lg">
+                  <h3 className="font-medium mb-4 text-lg">Unique Value Proposition</h3>
+                  <div className="min-h-[100px] bg-muted rounded p-4 text-sm">
                     [How will you be 3-10x better than existing alternatives?]
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-3">Pricing Floor</h3>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="p-6 border rounded-lg">
+                    <h3 className="font-medium mb-4 text-lg">Pricing Floor</h3>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [Cost of existing alternatives]
                     </div>
                   </div>
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-3">Pricing Ceiling</h3>
-                    <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
+                  <div className="p-6 border rounded-lg">
+                    <h3 className="font-medium mb-4 text-lg">Pricing Ceiling</h3>
+                    <div className="min-h-[80px] bg-muted rounded p-4 text-sm">
                       [Value delivered to customer]
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">MVP Design</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
+                <div className="p-6 border rounded-lg">
+                  <h3 className="font-medium mb-4 text-lg">MVP Design</h3>
+                  <div className="min-h-[120px] bg-muted rounded p-4 text-sm">
                     [What's the smallest thing that can deliver the promised value?]
                   </div>
                 </div>
