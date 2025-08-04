@@ -344,9 +344,9 @@ Best,
           </div>
         </div>
 
-        <div className="flex gap-0 relative">
+        <div className="relative">
           {/* Command Center - Prospect List */}
-          <div className={`transition-all duration-300 ${selectedProspectId ? 'w-1/2 opacity-75' : 'w-full'}`}>
+          <div className={`transition-all duration-300 ${selectedProspectId ? 'opacity-75' : ''}`}>
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b border-border pb-3 mb-2">
               <div className="col-span-1">FIT</div>
@@ -425,272 +425,281 @@ Best,
             )}
           </div>
 
-          {/* Focus View Panel */}
+          {/* Centered Modal for Focus View */}
           {selectedProspect && (
-            <div className="w-1/2 border-l border-border bg-card">
-              <div className="h-full flex flex-col">
-                {/* Panel Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border">
-                  <div className="flex items-center gap-3">
+            <>
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 bg-black/50 z-40"
+                onClick={() => setSelectedProspectId(null)}
+              />
+              
+              {/* Centered Modal */}
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="bg-card border border-border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between p-6 border-b border-border">
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setSelectedProspectId(null)}
+                        className="flex items-center gap-1"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <h3 className="text-xl font-semibold">{selectedProspect.name}</h3>
+                    </div>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => setSelectedProspectId(null)}
-                      className="flex items-center gap-1"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
-                    <h3 className="text-lg font-semibold">{selectedProspect.name}</h3>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setSelectedProspectId(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
 
-                <div className="flex-1 overflow-y-auto">
-                  <Tabs defaultValue="profile" className="h-full">
-                    <TabsList className="grid w-full grid-cols-3 mx-6 mt-6">
-                      <TabsTrigger value="profile">Profile & Fit</TabsTrigger>
-                      <TabsTrigger value="outreach">Outreach</TabsTrigger>
-                      <TabsTrigger value="interview">Interview</TabsTrigger>
-                    </TabsList>
+                  <div className="flex-1 overflow-y-auto">
+                    <Tabs defaultValue="profile" className="h-full">
+                      <TabsList className="grid w-full grid-cols-3 mx-6 mt-6">
+                        <TabsTrigger value="profile">Profile & Fit</TabsTrigger>
+                        <TabsTrigger value="outreach">Outreach</TabsTrigger>
+                        <TabsTrigger value="interview">Interview</TabsTrigger>
+                      </TabsList>
 
-                    <TabsContent value="profile" className="p-6 space-y-6">
-                      {/* AI-Generated Summary */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">AI-Generated Summary</h4>
-                          <Sparkles className="h-4 w-4 text-primary" />
-                        </div>
-                        
-                        <div className="bg-background-subtle rounded-lg p-4">
-                          <p className="text-sm text-foreground leading-relaxed">
-                            {selectedProspect.aiSummary || 'AI analysis will appear here once prospect is enriched.'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* AI-Generated Fit Score */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">AI-Generated Fit Score</h4>
-                        
-                        {selectedProspect.fitScore && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${
-                                selectedProspect.fitScore === 'strong' ? 'bg-green-500' :
-                                selectedProspect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
-                              }`} />
-                              <span className="font-medium text-sm">
-                                {selectedProspect.fitScore === 'strong' ? 'Strong Fit' :
-                                 selectedProspect.fitScore === 'moderate' ? 'Moderate Fit' : 'Weak Fit'}
-                              </span>
-                              <span className="text-muted-foreground text-sm">
-                                - Matches your target segment and shows recent struggle.
-                              </span>
-                            </div>
-                            
-                            {selectedProspect.evidenceOfStruggle && (
-                              <div className="bg-background-subtle rounded-lg p-3">
-                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                                  Evidence of Struggle
-                                </p>
-                                <p className="text-sm text-foreground">
-                                  {selectedProspect.evidenceOfStruggle}
-                                </p>
-                                {selectedProspect.evidenceSource && (
-                                  <p className="text-xs text-primary mt-2 cursor-pointer hover:underline">
-                                    Source: {selectedProspect.evidenceSource}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Contact Information */}
-                      {(selectedProspect.email || selectedProspect.company || selectedProspect.jobTitle) && (
+                      <TabsContent value="profile" className="p-6 space-y-6">
+                        {/* AI-Generated Summary */}
                         <div className="space-y-4">
-                          <h4 className="font-semibold">AI-Discovered Contact Info</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">AI-Generated Summary</h4>
+                            <Sparkles className="h-4 w-4 text-primary" />
+                          </div>
                           
-                          <div className="space-y-2">
-                            {selectedProspect.email && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-foreground">{selectedProspect.email}</span>
-                              </div>
-                            )}
-                            {selectedProspect.company && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Globe className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-foreground">{selectedProspect.jobTitle} at {selectedProspect.company}</span>
-                              </div>
-                            )}
+                          <div className="bg-background-subtle rounded-lg p-4">
+                            <p className="text-sm text-foreground leading-relaxed">
+                              {selectedProspect.aiSummary || 'AI analysis will appear here once prospect is enriched.'}
+                            </p>
                           </div>
                         </div>
-                      )}
-                    </TabsContent>
 
-                    <TabsContent value="outreach" className="p-6 space-y-6">
-                      {/* Personalized Outreach Composer */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">Hyper-Personalized Outreach</h4>
-                          <Sparkles className="h-4 w-4 text-primary" />
-                        </div>
-                        
-                        <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line font-mono">
-                          {generatePersonalizedOutreach(selectedProspect)}
-                        </div>
-
-                        <Button 
-                          onClick={() => handleCopyAndMarkContacted(selectedProspect)}
-                          className="w-full flex items-center gap-2"
-                          disabled={selectedProspect.status !== 'identified'}
-                        >
-                          <Copy className="h-4 w-4" />
-                          {selectedProspect.status === 'identified' ? 'Copy & Mark as Contacted' : 'Already Contacted'}
-                        </Button>
-                      </div>
-
-                      {/* AI Writing Tools */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">AI Writing Tools</h4>
-                        
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" />
-                            Rewrite Casual
-                          </Button>
-                          <Button variant="outline" size="sm" className="flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" />
-                            Rewrite Formal
-                          </Button>
-                        </div>
-                        
-                        <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
-                          <Sparkles className="h-3 w-3" />
-                          Suggest Talking Points
-                        </Button>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="interview" className="p-6 space-y-6">
-                      {/* Activity Feed */}
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">Interview Notes & Activity</h4>
-                        
-                        {/* Add Note */}
-                        <div className="flex gap-2">
-                          <Textarea
-                            placeholder="Add interview notes, call summary, or log an activity..."
-                            value={newNote}
-                            onChange={(e) => setNewNote(e.target.value)}
-                            className="flex-1 min-h-[100px]"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && e.metaKey) {
-                                addNote(selectedProspect.id);
-                              }
-                            }}
-                          />
-                          <Button 
-                            onClick={() => addNote(selectedProspect.id)}
-                            disabled={!newNote.trim()}
-                            className="self-end"
-                          >
-                            Add
-                          </Button>
-                        </div>
-
-                        {/* Activity List */}
-                        <div className="space-y-3">
-                          {selectedProspect.activities.map((activity) => (
-                            <div key={activity.id} className="flex gap-3 text-sm">
-                              <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                              <div className="flex-1">
-                                <p className="text-foreground">{activity.message}</p>
-                                <p className="text-muted-foreground text-xs">
-                                  {formatDate(activity.timestamp)}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
+                        {/* AI-Generated Fit Score */}
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">AI-Generated Fit Score</h4>
                           
-                          {selectedProspect.activities.length === 0 && (
-                            <p className="text-muted-foreground text-sm italic">No activity yet. Interview evidence will appear here.</p>
+                          {selectedProspect.fitScore && (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  selectedProspect.fitScore === 'strong' ? 'bg-green-500' :
+                                  selectedProspect.fitScore === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
+                                }`} />
+                                <span className="font-medium text-sm">
+                                  {selectedProspect.fitScore === 'strong' ? 'Strong Fit' :
+                                   selectedProspect.fitScore === 'moderate' ? 'Moderate Fit' : 'Weak Fit'}
+                                </span>
+                                <span className="text-muted-foreground text-sm">
+                                  - Matches your target segment and shows recent struggle.
+                                </span>
+                              </div>
+                              
+                              {selectedProspect.evidenceOfStruggle && (
+                                <div className="bg-background-subtle rounded-lg p-3">
+                                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                                    Evidence of Struggle
+                                  </p>
+                                  <p className="text-sm text-foreground">
+                                    {selectedProspect.evidenceOfStruggle}
+                                  </p>
+                                  {selectedProspect.evidenceSource && (
+                                    <p className="text-xs text-primary mt-2 cursor-pointer hover:underline">
+                                      Source: {selectedProspect.evidenceSource}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-border bg-muted/30">
-                  <p className="text-xs text-muted-foreground">
-                    <strong>Remember:</strong> You're a student asking to learn from an expert. The goal is to be curious, not to sell.
+                        {/* Contact Information */}
+                        {(selectedProspect.email || selectedProspect.company || selectedProspect.jobTitle) && (
+                          <div className="space-y-4">
+                            <h4 className="font-semibold">AI-Discovered Contact Info</h4>
+                            
+                            <div className="space-y-2">
+                              {selectedProspect.email && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-foreground">{selectedProspect.email}</span>
+                                </div>
+                              )}
+                              {selectedProspect.company && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Globe className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-foreground">{selectedProspect.jobTitle} at {selectedProspect.company}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="outreach" className="p-6 space-y-6">
+                        {/* Personalized Outreach Composer */}
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">Hyper-Personalized Outreach</h4>
+                            <Sparkles className="h-4 w-4 text-primary" />
+                          </div>
+                          
+                          <div className="bg-background-subtle rounded-lg p-4 text-sm whitespace-pre-line font-mono">
+                            {generatePersonalizedOutreach(selectedProspect)}
+                          </div>
+
+                          <Button 
+                            onClick={() => handleCopyAndMarkContacted(selectedProspect)}
+                            className="w-full flex items-center gap-2"
+                            disabled={selectedProspect.status !== 'identified'}
+                          >
+                            <Copy className="h-4 w-4" />
+                            {selectedProspect.status === 'identified' ? 'Copy & Mark as Contacted' : 'Already Contacted'}
+                          </Button>
+                        </div>
+
+                        {/* AI Writing Tools */}
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">AI Writing Tools</h4>
+                          
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" className="flex items-center gap-1">
+                              <Sparkles className="h-3 w-3" />
+                              Rewrite Casual
+                            </Button>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1">
+                              <Sparkles className="h-3 w-3" />
+                              Rewrite Formal
+                            </Button>
+                          </div>
+                          
+                          <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            Suggest Talking Points
+                          </Button>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="interview" className="p-6 space-y-6">
+                        {/* Activity Feed */}
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">Interview Notes & Activity</h4>
+                          
+                          {/* Add Note */}
+                          <div className="flex gap-2">
+                            <Textarea
+                              placeholder="Add interview notes, call summary, or log an activity..."
+                              value={newNote}
+                              onChange={(e) => setNewNote(e.target.value)}
+                              className="flex-1 min-h-[100px]"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.metaKey) {
+                                  addNote(selectedProspect.id);
+                                }
+                              }}
+                            />
+                            <Button 
+                              onClick={() => addNote(selectedProspect.id)}
+                              disabled={!newNote.trim()}
+                              className="self-end"
+                            >
+                              Add
+                            </Button>
+                          </div>
+
+                          {/* Activity List */}
+                          <div className="space-y-3">
+                            {selectedProspect.activities.map((activity) => (
+                              <div key={activity.id} className="flex gap-3 text-sm">
+                                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                                <div className="flex-1">
+                                  <p className="text-foreground">{activity.message}</p>
+                                  <p className="text-muted-foreground text-xs">
+                                    {formatDate(activity.timestamp)}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {selectedProspect.activities.length === 0 && (
+                              <p className="text-muted-foreground text-sm italic">No activity yet. Interview evidence will appear here.</p>
+                            )}
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 border-t border-border bg-muted/30">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Remember:</strong> You're a student asking to learn from an expert. The goal is to be curious, not to sell.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* URL Input Overlay */}
+          {showUrlInput && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-card border border-border rounded-lg p-6 w-96 space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Add Prospect</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enter a LinkedIn profile, company website, or news article URL...
                   </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <Input
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    placeholder="https://linkedin.com/in/prospect..."
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        enrichProspectFromUrl(urlInput);
+                      } else if (e.key === 'Escape') {
+                        setShowUrlInput(false);
+                        setUrlInput('');
+                      }
+                    }}
+                  />
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => enrichProspectFromUrl(urlInput)}
+                      disabled={!urlInput.trim()}
+                      className="flex-1"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Enrich with AI
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setShowUrlInput(false);
+                        setUrlInput('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
-
-        {/* URL Input Overlay */}
-        {showUrlInput && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-card border border-border rounded-lg p-6 w-96 space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Add Prospect</h3>
-                <p className="text-sm text-muted-foreground">
-                  Enter a LinkedIn profile, company website, or news article URL...
-                </p>
-              </div>
-              
-              <div className="space-y-4">
-                <Input
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://linkedin.com/in/prospect..."
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      enrichProspectFromUrl(urlInput);
-                    } else if (e.key === 'Escape') {
-                      setShowUrlInput(false);
-                      setUrlInput('');
-                    }
-                  }}
-                />
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => enrichProspectFromUrl(urlInput)}
-                    disabled={!urlInput.trim()}
-                    className="flex-1"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Enrich with AI
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      setShowUrlInput(false);
-                      setUrlInput('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
