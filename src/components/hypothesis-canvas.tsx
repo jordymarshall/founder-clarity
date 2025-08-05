@@ -478,7 +478,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                                       isBulletExpanded ? 'rotate-90' : ''
                                     }`}
                                   />
-                                  {card.content.length > 2 && (
+                                  {card.content.length > 1 && (
                                     <Button
                                       onClick={(e) => {
                                         e.stopPropagation();
