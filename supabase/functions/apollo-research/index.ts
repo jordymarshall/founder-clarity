@@ -30,16 +30,29 @@ serve(async (req) => {
         requestBody = { email: query };
         break;
       case 'people_search':
-        endpoint = 'https://api.apollo.io/v1/mixed_people/search';
-        requestBody = {
-          person_titles: query.person_titles || [],
-          person_seniorities: query.person_seniorities || [],
-          organization_num_employees_ranges: query.organization_num_employees_ranges || [],
-          organization_industries: query.organization_industries || [],
-          person_locations: query.person_locations || [],
-          page: query.page || 1,
-          per_page: query.per_page || 5
-        };
+        // For free plan users, use basic people match instead of advanced search
+        endpoint = 'https://api.apollo.io/v1/people/match';
+        // Simplified search using just email domain if available
+        const domain = query.organization_domains?.[0] || query.domain;
+        if (domain) {
+          requestBody = { 
+            email: `info@${domain}` // Try to match any contact at the domain
+          };
+        } else {
+          // If no domain, return empty results with guidance
+          return new Response(JSON.stringify({ 
+            success: true, 
+            data: { 
+              people: [], 
+              pagination: { total_entries: 0 },
+              total_entries: 0,
+              message: "Free plan requires company domain. Please upgrade to Apollo paid plan for advanced search."
+            },
+            type: type 
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         break;
       case 'prospector':
         endpoint = 'https://api.apollo.io/v1/mixed_people/search';
@@ -120,30 +133,68 @@ serve(async (req) => {
         };
         break;
       case 'people_search':
-        formattedData = {
-          people: data.people?.map((person: any) => ({
-            id: person.id,
-            name: person.name,
-            first_name: person.first_name,
-            last_name: person.last_name,
-            email: person.email,
-            title: person.title,
-            seniority: person.seniority,
-            company: person.organization?.name,
-            company_domain: person.organization?.website_url,
-            industry: person.organization?.industry,
-            company_size: person.organization?.estimated_num_employees,
-            location: `${person.city || ''}, ${person.state || ''}, ${person.country || ''}`.replace(/^, |, $|, ,/g, ''),
-            linkedin: person.linkedin_url,
-            twitter: person.twitter_url,
-            phone: person.sanitized_phone,
-            email_status: person.email_status,
-            photo_url: person.photo_url,
-            headline: person.headline
-          })) || [],
-          pagination: data.pagination || {},
-          total_entries: data.pagination?.total_entries || 0
-        };
+        // Handle both advanced search results and simple person match results
+        if (data.people) {
+          // Advanced search response format
+          formattedData = {
+            people: data.people.map((person: any) => ({
+              id: person.id,
+              name: person.name,
+              first_name: person.first_name,
+              last_name: person.last_name,
+              email: person.email,
+              title: person.title,
+              seniority: person.seniority,
+              company: person.organization?.name,
+              company_domain: person.organization?.website_url,
+              industry: person.organization?.industry,
+              company_size: person.organization?.estimated_num_employees,
+              location: `${person.city || ''}, ${person.state || ''}, ${person.country || ''}`.replace(/^, |, $|, ,/g, ''),
+              linkedin: person.linkedin_url,
+              twitter: person.twitter_url,
+              phone: person.sanitized_phone,
+              email_status: person.email_status,
+              photo_url: person.photo_url,
+              headline: person.headline
+            })),
+            pagination: data.pagination || {},
+            total_entries: data.pagination?.total_entries || 0
+          };
+        } else if (data.person) {
+          // Simple person match response format - convert to search format
+          const person = data.person;
+          formattedData = {
+            people: [{
+              id: person.id,
+              name: person.name,
+              first_name: person.first_name,
+              last_name: person.last_name,
+              email: person.email,
+              title: person.title,
+              seniority: person.seniority,
+              company: person.organization?.name,
+              company_domain: person.organization?.website_url,
+              industry: person.organization?.industry,
+              company_size: person.organization?.estimated_num_employees,
+              location: `${person.city || ''}, ${person.state || ''}, ${person.country || ''}`.replace(/^, |, $|, ,/g, ''),
+              linkedin: person.linkedin_url,
+              twitter: person.twitter_url,
+              phone: person.sanitized_phone,
+              email_status: person.email_status,
+              photo_url: person.photo_url,
+              headline: person.headline
+            }],
+            pagination: { total_entries: 1 },
+            total_entries: 1
+          };
+        } else {
+          // No results
+          formattedData = {
+            people: [],
+            pagination: { total_entries: 0 },
+            total_entries: 0
+          };
+        }
         break;
       case 'prospector':
         formattedData = data.people?.map((person: any) => ({
