@@ -307,23 +307,23 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
             </CardHeader>
             <CardContent className="space-y-4">
               {profileDefined && candidateProfile.customerSegment ? (
-                <div className="bg-background border rounded-lg p-4 space-y-3">
+                <div className="space-y-3">
                   <h4 className="font-medium text-foreground">Look for people who match this profile:</h4>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <span><strong>Customer Type:</strong> {candidateProfile.customerSegment}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <span><strong>Current Solution:</strong> Using {candidateProfile.existingAlternative}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <span><strong>Recent Activity (90 days):</strong> {candidateProfile.recencyFilter}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <span><strong>Why This Segment:</strong> {candidateProfile.rationale}</span>
                     </li>
                   </ul>
@@ -338,7 +338,7 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
                     ) : (
                       <Sparkles className="h-4 w-4 mr-2" />
                     )}
-                    Generate Apollo Search
+                    Generate Search
                   </Button>
                 </div>
               ) : (
