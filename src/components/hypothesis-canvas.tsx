@@ -331,7 +331,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
     return (
       <div className="max-w-2xl mx-auto px-4 space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-page-title">AI-Powered Hypothesis Canvas</h1>
+          <h1 className="text-page-title">Hypothesis Canvas</h1>
           <p className="text-foreground-secondary text-lg">
             Transform your idea into sharp, testable beliefs
           </p>
@@ -366,7 +366,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
       <div className="container mx-auto py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center space-y-2 mb-8">
-          <h2 className="text-2xl font-semibold">AI-Powered Hypothesis Canvas</h2>
+          <h2 className="text-2xl font-semibold">Hypothesis Canvas</h2>
           <p className="text-muted-foreground">Your idea, structured for validation</p>
           <p className="text-sm text-muted-foreground italic">"{inputValue}"</p>
         </div>
@@ -412,7 +412,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Key insights from AI analysis and research
+                        Key insights from analysis and research
                       </p>
                     </div>
                     <ChevronRight 
@@ -498,7 +498,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                             <CollapsibleContent className="ml-8 pb-2">
                               <div className="bg-muted/30 rounded-lg p-3 border-l-2 border-primary/20">
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                                  AI Rationale
+                                  Rationale
                                 </p>
                                 {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
                                   <Textarea
