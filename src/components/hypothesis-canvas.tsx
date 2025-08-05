@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -76,7 +76,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   };
 
   // Canvas generation function
-  const handleGenerateCanvas = async (ideaText: string) => {
+  const handleGenerateCanvas = useCallback(async (ideaText: string) => {
     setIsGenerating(true);
     setShowCanvas(true);
     setCards([]); // Clear existing cards first
@@ -101,7 +101,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [onInitialized, onCardsChange]);
 
   // Refinement function
   const handleRefineCanvas = async () => {
@@ -168,13 +168,13 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   }, [showCanvas]);
 
   useEffect(() => {
-    if (idea && !isInitialized) {
+    if (idea && !isInitialized && cards.length === 0) {
       handleGenerateCanvas(idea);
-    } else if (isInitialized && persistedCards.length > 0) {
+    } else if (isInitialized && persistedCards.length > 0 && cards.length === 0) {
       setShowCanvas(true);
       setCards(persistedCards);
     }
-  }, [idea, isInitialized, persistedCards]);
+  }, [idea, isInitialized, handleGenerateCanvas]);
 
   // Render initial state (input form)
   if (!showCanvas) {
