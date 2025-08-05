@@ -267,6 +267,7 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
         recencyFilter: 'People who used alternatives within the last 90 days for accurate recall',
         rationale: 'Focus on broad customer segment with recent alternative usage for factual insights'
       });
+      setProfileDefined(true);
     }
   }, [customerSegment, coreProblem, jobToBeDone, existingAlternatives, candidateProfile.customerSegment]);
 
@@ -297,95 +298,59 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
-                Module 2: Define Interview Candidate Profile
+                <Target className="h-5 w-5 text-primary" />
+                Ideal Customer Profile
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Following validation masterclass methodology - identify people who match your customer segment and have recent, relevant experience.
+                AI-generated checklist of what to search for to find the right interview candidates
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    CUSTOMER SEGMENT: Broad group who has the problem
-                  </label>
-                  <Input
-                    placeholder="e.g., Small, independent coffee shop owners"
-                    value={candidateProfile.customerSegment}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, customerSegment: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">The broad group of people or businesses you believe have the problem</p>
+              {profileDefined && candidateProfile.customerSegment ? (
+                <div className="bg-background border rounded-lg p-4 space-y-3">
+                  <h4 className="font-medium text-foreground">Look for people who match this profile:</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Customer Type:</strong> {candidateProfile.customerSegment}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Current Solution:</strong> Using {candidateProfile.existingAlternative}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Goal:</strong> {candidateProfile.hypothesizedJTBD}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Recent Activity (90 days):</strong> {candidateProfile.recencyFilter}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Why This Segment:</strong> {candidateProfile.rationale}</span>
+                    </li>
+                  </ul>
+                  
+                  <Button 
+                    onClick={generateApolloSearchCriteria}
+                    className="w-full mt-4"
+                    disabled={isGeneratingCriteria}
+                  >
+                    {isGeneratingCriteria ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Generate Apollo Search
+                  </Button>
                 </div>
-
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    EXISTING ALTERNATIVE: What are they doing now to solve it?
-                  </label>
-                  <Input
-                    placeholder="e.g., Manually posting on Instagram, hiring freelance social media managers"
-                    value={candidateProfile.existingAlternative}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, existingAlternative: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Evidence the problem is real - never "nothing" (could be competitor, spreadsheet, manual process)</p>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Complete your Hypothesis Canvas first to generate the Ideal Customer Profile</p>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    HYPOTHESIZED JOB TO BE DONE: What progress are they trying to make?
-                  </label>
-                  <Input
-                    placeholder="e.g., Attract new customers to grow the business"
-                    value={candidateProfile.hypothesizedJTBD}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, hypothesizedJTBD: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">The bigger context - underlying progress the customer is trying to make</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    RECENCY FILTER: How to find people with fresh stories (90 days)?
-                  </label>
-                  <Input
-                    placeholder="e.g., Recent social media activity, job postings, funding announcements"
-                    value={candidateProfile.recencyFilter}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, recencyFilter: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Focus on people who took action recently - their memories will be fresh and detailed</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    RATIONALE: Why focus on this segment first?
-                  </label>
-                  <Textarea
-                    placeholder="e.g., This segment shows highest engagement with validation content and rates customer discovery as biggest weakness..."
-                    value={candidateProfile.rationale}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, rationale: e.target.value }))}
-                    className="min-h-[80px]"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Evidence-based reasoning for why this is the right segment to interview first</p>
-                </div>
-              </div>
-
-              <Button 
-                onClick={() => {
-                  if (candidateProfile.customerSegment && candidateProfile.existingAlternative && 
-                      candidateProfile.hypothesizedJTBD) {
-                    setProfileDefined(true);
-                    generateApolloSearchCriteria();
-                  } else {
-                    toast.error('Please fill in all required fields');
-                  }
-                }}
-                className="w-full"
-                disabled={!candidateProfile.customerSegment || !candidateProfile.existingAlternative || 
-                         !candidateProfile.hypothesizedJTBD}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm Profile & Generate Apollo Search Criteria
-              </Button>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
