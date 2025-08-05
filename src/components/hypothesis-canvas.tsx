@@ -2,12 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Plus, X, Database, Target, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Plus, X, Database } from 'lucide-react';
 import { CRMResearch } from '@/components/crm-research';
-import { EvidenceTab } from '@/components/evidence-tab';
 import { cn } from '@/lib/utils';
 
 interface BulletPoint {
@@ -49,7 +47,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [generatingPoints, setGeneratingPoints] = useState<string[]>([]);
   const [showResearch, setShowResearch] = useState<string[]>([]);
   const [refinementInputs, setRefinementInputs] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState('canvas');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Toggle bullet point expansion
@@ -447,279 +444,278 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
           <p className="text-sm text-muted-foreground italic">"{inputValue}"</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="canvas" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Hypothesis Canvas
-            </TabsTrigger>
-            <TabsTrigger value="evidence" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Evidence & Research
-            </TabsTrigger>
-          </TabsList>
+        {/* AI Research Status */}
+        {isGenerating && (
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              Analyzing your idea... Searching for market signals...
+            </div>
+          </div>
+        )}
 
-          <TabsContent value="canvas" className="space-y-6">
-            {/* AI Research Status */}
-            {isGenerating && (
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                  Analyzing your idea... Searching for market signals...
-                </div>
-              </div>
-            )}
+        {/* Canvas Cards */}
+        <div className="space-y-4">
+          {cards.map((card, index) => (
+            <Card 
+              key={card.id}
+              className={`transition-all duration-300 ${
+                showAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+              } ${card.needsUpdate ? 'ring-2 ring-yellow-500/20' : ''}`}
+              style={{
+                animationDelay: showAnimation ? `${index * 150}ms` : '0ms'
+              }}
+            >
+              <Collapsible
+                open={expandedCards.includes(card.id)}
+                onOpenChange={() => toggleCard(card.id)}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="flex items-center justify-between p-6 cursor-pointer hover:bg-muted/50 transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-medium">
+                          {index + 1}. {card.title}
+                        </h3>
+                        {card.needsUpdate && (
+                          <RefreshCw className="h-4 w-4 text-yellow-500 animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Key insights from analysis and research
+                      </p>
+                    </div>
+                    <ChevronRight 
+                      className={`h-5 w-5 transition-transform duration-200 ${
+                        expandedCards.includes(card.id) ? 'rotate-90' : ''
+                      }`}
+                    />
+                  </div>
+                </CollapsibleTrigger>
 
-            {/* Canvas Cards */}
-            <div className="space-y-4">
-              {cards.map((card, index) => (
-                <Card 
-                  key={card.id}
-                  className={`transition-all duration-300 ${
-                    showAnimation ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-                  } ${card.needsUpdate ? 'ring-2 ring-yellow-500/20' : ''}`}
-                  style={{
-                    animationDelay: showAnimation ? `${index * 150}ms` : '0ms'
-                  }}
-                >
-                  <Collapsible
-                    open={expandedCards.includes(card.id)}
-                    onOpenChange={() => toggleCard(card.id)}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <div className="flex items-center justify-between p-6 cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-medium">
-                              {index + 1}. {card.title}
-                            </h3>
-                            {card.needsUpdate && (
-                              <RefreshCw className="h-4 w-4 text-yellow-500 animate-pulse" />
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Key insights from analysis and research
-                          </p>
+                <CollapsibleContent className="px-6 pb-6">
+                  <div className="space-y-4 pt-4 border-t">
+                    {/* Bullet Points */}
+                    {card.content.map((bulletPoint, pointIndex) => {
+                      const bulletId = `${card.id}-${pointIndex}`;
+                      const isBulletExpanded = expandedBullets.includes(bulletId);
+                      
+                      return (
+                        <div key={pointIndex} className="space-y-2">
+                          <Collapsible
+                            open={isBulletExpanded}
+                            onOpenChange={() => toggleBullet(card.id, pointIndex)}
+                          >
+                            <CollapsibleTrigger asChild>
+                              <div className="flex items-start gap-2 group cursor-pointer hover:bg-muted/30 rounded p-2 -m-2 transition-colors">
+                                <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                                  {pointIndex + 1}
+                                </span>
+                                <div className="flex-1">
+                                  {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                                    <Textarea
+                                      value={bulletPoint.text}
+                                      onChange={(e) => handleBulletEdit(card.id, pointIndex, 'text', e.target.value)}
+                                      onBlur={() => setEditingBullet(null)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault();
+                                          setEditingBullet(null);
+                                        }
+                                        if (e.key === 'Escape') {
+                                          setEditingBullet(null);
+                                        }
+                                      }}
+                                      className="min-h-[60px] text-sm"
+                                      autoFocus
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  ) : (
+                                    <p 
+                                      className="text-sm leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingBullet({ cardId: card.id, bulletIndex: pointIndex });
+                                      }}
+                                    >
+                                      {bulletPoint.text}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <ChevronRight 
+                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                      isBulletExpanded ? 'rotate-90' : ''
+                                    }`}
+                                  />
+                                  {card.content.length > 1 && (
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveBulletPoint(card.id, pointIndex);
+                                      }}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </CollapsibleTrigger>
+                            
+                            <CollapsibleContent className="ml-8 pb-2">
+                              <div className="bg-muted/30 rounded-lg p-3 border-l-2 border-primary/20">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                                  Rationale
+                                </p>
+                                {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                                  <Textarea
+                                    value={bulletPoint.rationale}
+                                    onChange={(e) => handleBulletEdit(card.id, pointIndex, 'rationale', e.target.value)}
+                                    onBlur={() => setEditingBullet(null)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        setEditingBullet(null);
+                                      }
+                                      if (e.key === 'Escape') {
+                                        setEditingBullet(null);
+                                      }
+                                    }}
+                                    className="min-h-[40px] text-xs bg-background"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <p 
+                                    className="text-xs text-muted-foreground leading-relaxed cursor-pointer hover:text-foreground transition-colors"
+                                    onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
+                                  >
+                                    {bulletPoint.rationale}
+                                  </p>
+                                )}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
                         </div>
-                        <ChevronRight 
-                          className={`h-5 w-5 transition-transform duration-200 ${
-                            expandedCards.includes(card.id) ? 'rotate-90' : ''
-                          }`}
+                      );
+                    })}
+
+                    {/* Add Point & Research Buttons */}
+                    <div className="pt-2 flex gap-2 flex-wrap">
+                      <Button 
+                        onClick={() => handleAddBulletPoint(card.id)}
+                        size="sm" 
+                        variant="outline"
+                        className="h-7 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Point
+                      </Button>
+                      <Button 
+                        onClick={() => handleGenerateBulletPoint(card.id)}
+                        disabled={generatingPoints.includes(card.id)}
+                        size="sm" 
+                        variant="outline"
+                        className="h-7 text-xs"
+                      >
+                        {generatingPoints.includes(card.id) ? (
+                          <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3 mr-1" />
+                        )}
+                        {generatingPoints.includes(card.id) ? 'Generating...' : 'Generate Point'}
+                      </Button>
+                      <Button 
+                        onClick={() => toggleResearch(card.id)}
+                        size="sm" 
+                        variant={showResearch.includes(card.id) ? "default" : "outline"}
+                        className="h-7 text-xs"
+                      >
+                        <Database className="h-3 w-3 mr-1" />
+                        Research Evidence
+                      </Button>
+                    </div>
+
+                    {/* CRM Research Panel */}
+                    {showResearch.includes(card.id) && (
+                      <div className="border-t pt-4 mt-4">
+                        <CRMResearch 
+                          onAddEvidence={(evidence, source) => handleAddEvidence(evidence, source, card.id)}
                         />
                       </div>
-                    </CollapsibleTrigger>
+                    )}
 
-                    <CollapsibleContent className="px-6 pb-6">
-                      <div className="space-y-4 pt-4 border-t">
-                        {/* Bullet Points */}
-                        {card.content.map((bulletPoint, pointIndex) => {
-                          const bulletId = `${card.id}-${pointIndex}`;
-                          const isBulletExpanded = expandedBullets.includes(bulletId);
-                          
-                          return (
-                            <div key={pointIndex} className="space-y-2">
-                              <Collapsible
-                                open={isBulletExpanded}
-                                onOpenChange={() => toggleBullet(card.id, pointIndex)}
-                              >
-                                <CollapsibleTrigger asChild>
-                                  <div className="flex items-start gap-2 group cursor-pointer hover:bg-muted/30 rounded p-2 -m-2 transition-colors">
-                                    <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                                      {pointIndex + 1}
-                                    </span>
-                                    <div className="flex-1">
-                                      {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
-                                        <Textarea
-                                          value={bulletPoint.text}
-                                          onChange={(e) => handleBulletEdit(card.id, pointIndex, 'text', e.target.value)}
-                                          onBlur={() => setEditingBullet(null)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                              e.preventDefault();
-                                              setEditingBullet(null);
-                                            }
-                                            if (e.key === 'Escape') {
-                                              setEditingBullet(null);
-                                            }
-                                          }}
-                                          className="min-h-[60px] text-sm"
-                                          autoFocus
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                      ) : (
-                                        <p 
-                                          className="text-sm leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingBullet({ cardId: card.id, bulletIndex: pointIndex });
-                                          }}
-                                        >
-                                          {bulletPoint.text}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <ChevronRight 
-                                        className={`h-4 w-4 transition-transform duration-200 ${
-                                          isBulletExpanded ? 'rotate-90' : ''
-                                        }`}
-                                      />
-                                      {card.content.length > 1 && (
-                                        <Button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveBulletPoint(card.id, pointIndex);
-                                          }}
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </CollapsibleTrigger>
-                                
-                                <CollapsibleContent className="ml-8 pb-2">
-                                  <div className="bg-muted/30 rounded-lg p-3 border-l-2 border-primary/20">
-                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                                      Rationale
-                                    </p>
-                                    {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
-                                      <Textarea
-                                        value={bulletPoint.rationale}
-                                        onChange={(e) => handleBulletEdit(card.id, pointIndex, 'rationale', e.target.value)}
-                                        onBlur={() => setEditingBullet(null)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            setEditingBullet(null);
-                                          }
-                                          if (e.key === 'Escape') {
-                                            setEditingBullet(null);
-                                          }
-                                        }}
-                                        className="min-h-[40px] text-xs bg-background"
-                                        autoFocus
-                                      />
-                                    ) : (
-                                      <p 
-                                        className="text-xs text-muted-foreground leading-relaxed cursor-pointer hover:text-foreground transition-colors"
-                                        onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
-                                      >
-                                        {bulletPoint.rationale}
-                                      </p>
-                                    )}
-                                  </div>
-                                </CollapsibleContent>
-                              </Collapsible>
-                            </div>
-                          );
-                        })}
-
-                        {/* Add Point & Generate Buttons */}
-                        <div className="pt-2 flex gap-2 flex-wrap">
-                          <Button 
-                            onClick={() => handleAddBulletPoint(card.id)}
-                            size="sm" 
-                            variant="outline"
-                            className="h-7 text-xs"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add Point
-                          </Button>
-                          <Button 
-                            onClick={() => handleGenerateBulletPoint(card.id)}
-                            disabled={generatingPoints.includes(card.id)}
-                            size="sm" 
-                            variant="outline"
-                            className="h-7 text-xs"
-                          >
-                            {generatingPoints.includes(card.id) ? (
-                              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Sparkles className="h-3 w-3 mr-1" />
-                            )}
-                            {generatingPoints.includes(card.id) ? 'Generating...' : 'Generate Point'}
-                          </Button>
-                        </div>
-
-                        {/* Refinement Input */}
-                        <div className="border-t pt-4">
-                          <div className="flex gap-2">
-                            <Input
-                              value={refinementInputs[card.id] || ''}
-                              onChange={(e) => setRefinementInputs(prev => ({ ...prev, [card.id]: e.target.value }))}
-                              placeholder={`Refine ${card.title.toLowerCase()}...`}
-                              className="flex-1"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleRefineCard(card.id);
-                                }
-                              }}
-                            />
-                            <Button 
-                              onClick={() => handleRefineCard(card.id)}
-                              disabled={!refinementInputs[card.id]?.trim() || isGenerating}
-                              size="sm"
-                            >
-                              Refine
-                            </Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {card.id === 'customer-segment' && 'Try: "Focus on B2B vs B2C" or "Add demographic details like company size"'}
-                            {card.id === 'core-problem' && 'Try: "Explore emotional pain points" or "Add urgency and frequency details"'}
-                            {card.id === 'existing-alternatives' && 'Try: "Include DIY solutions" or "Research competitor pricing models"'}
-                            {card.id === 'job-to-be-done' && 'Try: "Define success metrics" or "Explore social/emotional outcomes"'}
-                          </p>
-                        </div>
+                    {/* Refinement Input */}
+                    <div className="border-t pt-4">
+                      <div className="flex gap-2">
+                        <Input
+                          value={refinementInputs[card.id] || ''}
+                          onChange={(e) => setRefinementInputs(prev => ({ ...prev, [card.id]: e.target.value }))}
+                          placeholder={`Refine ${card.title.toLowerCase()}...`}
+                          className="flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleRefineCard(card.id);
+                            }
+                          }}
+                        />
+                        <Button 
+                          onClick={() => handleRefineCard(card.id)}
+                          disabled={!refinementInputs[card.id]?.trim() || isGenerating}
+                          size="sm"
+                        >
+                          Refine
+                        </Button>
                       </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </Card>
-              ))}
-            </div>
-
-            {/* Global Continuous Discovery */}
-            {cards.length > 0 && (
-              <div className="mt-8">
-                <Card className="p-6">
-                  <h3 className="font-medium mb-3">Global Refinement</h3>
-                  <div className="flex gap-2">
-                    <Input
-                      value={refinementInput}
-                      onChange={(e) => setRefinementInput(e.target.value)}
-                      placeholder="Refine entire canvas or add cross-cutting insights..."
-                      className="flex-1"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleRefineCanvas();
-                        }
-                      }}
-                    />
-                    <Button 
-                      onClick={handleRefineCanvas}
-                      disabled={!refinementInput.trim() || isGenerating}
-                      size="sm"
-                    >
-                      Refine All
-                    </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {card.id === 'customer-segment' && 'Try: "Focus on B2B vs B2C" or "Add demographic details like company size"'}
+                        {card.id === 'core-problem' && 'Try: "Explore emotional pain points" or "Add urgency and frequency details"'}
+                        {card.id === 'existing-alternatives' && 'Try: "Include DIY solutions" or "Research competitor pricing models"'}
+                        {card.id === 'job-to-be-done' && 'Try: "Define success metrics" or "Explore social/emotional outcomes"'}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Try: "Focus the entire analysis on university students" or "Consider sustainability as a key factor"
-                  </p>
-                </Card>
-              </div>
-            )}
-          </TabsContent>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="evidence">
-            <EvidenceTab idea={inputValue} />
-          </TabsContent>
-        </Tabs>
+        {/* Global Continuous Discovery */}
+        {cards.length > 0 && (
+          <div className="mt-8">
+            <Card className="p-6">
+              <h3 className="font-medium mb-3">Global Refinement</h3>
+              <div className="flex gap-2">
+                <Input
+                  value={refinementInput}
+                  onChange={(e) => setRefinementInput(e.target.value)}
+                  placeholder="Refine entire canvas or add cross-cutting insights..."
+                  className="flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleRefineCanvas();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={handleRefineCanvas}
+                  disabled={!refinementInput.trim() || isGenerating}
+                  size="sm"
+                >
+                  Refine All
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Try: "Focus the entire analysis on university students" or "Consider sustainability as a key factor"
+              </p>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
