@@ -618,7 +618,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                           );
                         })}
 
-                        {/* Add Point & Research Buttons */}
+                        {/* Add Point & Generate Buttons */}
                         <div className="pt-2 flex gap-2 flex-wrap">
                           <Button 
                             onClick={() => handleAddBulletPoint(card.id)}
