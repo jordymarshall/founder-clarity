@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Plus, X } from 'lucide-react';
+import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Plus, X, Database } from 'lucide-react';
+import { CRMResearch } from '@/components/crm-research';
 import { cn } from '@/lib/utils';
 
 interface BulletPoint {
@@ -44,6 +45,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const [expandedBullets, setExpandedBullets] = useState<string[]>([]);
   const [generatingPoints, setGeneratingPoints] = useState<string[]>([]);
+  const [showResearch, setShowResearch] = useState<string[]>([]);
   const [refinementInputs, setRefinementInputs] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +57,33 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
         ? prev.filter(id => id !== bulletId)
         : [...prev, bulletId]
     );
+  };
+
+  // Toggle research panel
+  const toggleResearch = (cardId: string) => {
+    setShowResearch(prev => 
+      prev.includes(cardId) 
+        ? prev.filter(id => id !== cardId)
+        : [...prev, cardId]
+    );
+  };
+
+  // Handle adding evidence from CRM research
+  const handleAddEvidence = (evidence: string, source: string, cardId: string) => {
+    const newBulletPoint = { 
+      text: evidence, 
+      rationale: `Source: ${source} - Market research data supporting this insight`
+    };
+    
+    const updatedCards = cards.map(card => {
+      if (card.id === cardId) {
+        return { ...card, content: [...card.content, newBulletPoint] };
+      }
+      return card;
+    });
+    
+    setCards(updatedCards);
+    onCardsChange?.(updatedCards);
   };
 
   // Mock AI analysis function
@@ -573,8 +602,8 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                       );
                     })}
 
-                    {/* Add Point Button */}
-                    <div className="pt-2 flex gap-2">
+                    {/* Add Point & Research Buttons */}
+                    <div className="pt-2 flex gap-2 flex-wrap">
                       <Button 
                         onClick={() => handleAddBulletPoint(card.id)}
                         size="sm" 
@@ -598,7 +627,25 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         )}
                         {generatingPoints.includes(card.id) ? 'Generating...' : 'Generate Point'}
                       </Button>
+                      <Button 
+                        onClick={() => toggleResearch(card.id)}
+                        size="sm" 
+                        variant={showResearch.includes(card.id) ? "default" : "outline"}
+                        className="h-7 text-xs"
+                      >
+                        <Database className="h-3 w-3 mr-1" />
+                        Research Evidence
+                      </Button>
                     </div>
+
+                    {/* CRM Research Panel */}
+                    {showResearch.includes(card.id) && (
+                      <div className="border-t pt-4 mt-4">
+                        <CRMResearch 
+                          onAddEvidence={(evidence, source) => handleAddEvidence(evidence, source, card.id)}
+                        />
+                      </div>
+                    )}
 
                     {/* Refinement Input */}
                     <div className="border-t pt-4">
