@@ -202,7 +202,12 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   useEffect(() => {
     if (isInitialized && persistedCards.length > 0 && !hasGenerated) {
       setShowCanvas(true);
-      setCards(persistedCards);
+      // Ensure content is always an array for backwards compatibility
+      const normalizedCards = persistedCards.map(card => ({
+        ...card,
+        content: Array.isArray(card.content) ? card.content : [card.content]
+      }));
+      setCards(normalizedCards);
       setHasGenerated(true);
     } else if (idea && !isInitialized && !hasGenerated) {
       setHasGenerated(true);
@@ -300,7 +305,8 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         )}
                       </div>
                       <div className="space-y-2">
-                        {card.content.slice(0, 2).map((point, pointIndex) => (
+                        {/* Ensure content is an array before using array methods */}
+                        {(Array.isArray(card.content) ? card.content : [card.content]).slice(0, 2).map((point, pointIndex) => (
                           <div key={pointIndex} className="flex items-start gap-2">
                             <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
                               {pointIndex + 1}
@@ -310,9 +316,9 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                             </p>
                           </div>
                         ))}
-                        {card.content.length > 2 && (
+                        {(Array.isArray(card.content) ? card.content.length : 1) > 2 && (
                           <p className="text-xs text-muted-foreground ml-7">
-                            +{card.content.length - 2} more insights...
+                            +{(Array.isArray(card.content) ? card.content.length : 1) - 2} more insights...
                           </p>
                         )}
                       </div>
@@ -345,7 +351,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                     <div className="space-y-3">
                       <h4 className="text-sm font-medium text-foreground">Complete Analysis</h4>
                       <div className="space-y-2">
-                        {card.content.map((point, pointIndex) => (
+                        {(Array.isArray(card.content) ? card.content : [card.content]).map((point, pointIndex) => (
                           <div key={pointIndex} className="flex items-start gap-2">
                             <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
                               {pointIndex + 1}
