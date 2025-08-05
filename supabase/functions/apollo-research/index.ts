@@ -30,29 +30,17 @@ serve(async (req) => {
         requestBody = { email: query };
         break;
       case 'people_search':
-        // For free plan users, use basic people match instead of advanced search
-        endpoint = 'https://api.apollo.io/v1/people/match';
-        // Simplified search using just email domain if available
-        const domain = query.organization_domains?.[0] || query.domain;
-        if (domain) {
-          requestBody = { 
-            email: `info@${domain}` // Try to match any contact at the domain
-          };
-        } else {
-          // If no domain, return empty results with guidance
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: { 
-              people: [], 
-              pagination: { total_entries: 0 },
-              total_entries: 0,
-              message: "Free plan requires company domain. Please upgrade to Apollo paid plan for advanced search."
-            },
-            type: type 
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+        // For free plan, try the basic people search endpoint instead of mixed search
+        endpoint = 'https://api.apollo.io/v1/people/search';
+        requestBody = {
+          person_titles: query.person_titles || [],
+          person_seniorities: query.person_seniorities || [],
+          organization_num_employees_ranges: query.organization_num_employees_ranges || [],
+          organization_industries: query.organization_industries || [],
+          person_locations: query.person_locations || [],
+          page: query.page || 1,
+          per_page: query.per_page || 5
+        };
         break;
       case 'prospector':
         endpoint = 'https://api.apollo.io/v1/mixed_people/search';
