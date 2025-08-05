@@ -13,6 +13,7 @@ interface IdeaWorkflowLayoutProps {
 export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
   const [showInterviewScript, setShowInterviewScript] = useState(false);
   const [canvasInitialized, setCanvasInitialized] = useState(false);
+  const [canvasCards, setCanvasCards] = useState<any[]>([]);
 
   if (showInterviewScript) {
     return (
@@ -70,6 +71,8 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
               idea={idea} 
               isInitialized={canvasInitialized}
               onInitialized={() => setCanvasInitialized(true)}
+              persistedCards={canvasCards}
+              onCardsChange={setCanvasCards}
             />
           </TabsContent>
 

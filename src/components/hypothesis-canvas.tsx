@@ -20,15 +20,17 @@ interface HypothesisCanvasProps {
   idea: string;
   isInitialized?: boolean;
   onInitialized?: () => void;
+  persistedCards?: CanvasCard[];
+  onCardsChange?: (cards: CanvasCard[]) => void;
 }
 
-export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }: HypothesisCanvasProps) {
+export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, persistedCards = [], onCardsChange }: HypothesisCanvasProps) {
   // All state declarations together
   const [inputValue, setInputValue] = useState(idea || '');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showCanvas, setShowCanvas] = useState(isInitialized);
+  const [showCanvas, setShowCanvas] = useState(false);
   const [refinementInput, setRefinementInput] = useState('');
-  const [cards, setCards] = useState<CanvasCard[]>([]);
+  const [cards, setCards] = useState<CanvasCard[]>(persistedCards);
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,8 +86,14 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }:
       // Animate cards appearing one by one
       for (let i = 0; i < generatedCards.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 600));
-        setCards(prev => [...prev, generatedCards[i]]);
+        setCards(prev => {
+          const newCards = [...prev, generatedCards[i]];
+          onCardsChange?.(newCards);
+          return newCards;
+        });
       }
+      
+      onInitialized?.();
     } catch (error) {
       console.error('Error generating canvas:', error);
     } finally {
@@ -102,30 +110,29 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }:
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Mock refinement - in reality this would call AI with the refinement prompt
-    setCards(prev => prev.map(card => ({
+    const updatedCards = cards.map(card => ({
       ...card,
       needsUpdate: false,
       aiGenerated: true
-    })));
+    }));
     
+    setCards(updatedCards);
+    onCardsChange?.(updatedCards);
     setRefinementInput('');
     setIsGenerating(false);
   };
 
   // Card editing functions
   const handleCardEdit = (cardId: string, newContent: string) => {
-    setCards(prev => prev.map(card => {
+    const updatedCards = cards.map(card => {
       if (card.id === cardId) {
-        // Mark dependent cards as needing updates
-        const updatedCards = prev.map(c => ({
-          ...c,
-          needsUpdate: card.dependsOn?.includes(cardId) || c.dependsOn?.includes(cardId)
-        }));
-        
         return { ...card, content: newContent, aiGenerated: false };
       }
-      return card;
-    }));
+      return card.dependsOn?.includes(cardId) ? { ...card, needsUpdate: true } : card;
+    });
+    
+    setCards(updatedCards);
+    onCardsChange?.(updatedCards);
     setEditingCard(null);
   };
 
@@ -133,10 +140,12 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }:
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    setCards(prev => prev.map(card => 
+    const updatedCards = cards.map(card => 
       card.id === cardId ? { ...card, needsUpdate: false, aiGenerated: true } : card
-    ));
+    );
     
+    setCards(updatedCards);
+    onCardsChange?.(updatedCards);
     setIsGenerating(false);
   };
 
@@ -159,9 +168,11 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized }:
   useEffect(() => {
     if (idea && !isInitialized) {
       handleGenerateCanvas(idea);
-      onInitialized?.();
+    } else if (isInitialized && persistedCards.length > 0) {
+      setShowCanvas(true);
+      setCards(persistedCards);
     }
-  }, [idea, isInitialized, onInitialized]);
+  }, [idea, isInitialized, persistedCards]);
 
   // Render initial state (input form)
   if (!showCanvas) {
