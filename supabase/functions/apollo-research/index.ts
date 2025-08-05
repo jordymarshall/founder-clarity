@@ -69,7 +69,7 @@ serve(async (req) => {
       headers: {
         'Cache-Control': 'no-cache',
         'Content-Type': 'application/json',
-        'X-Api-Key': apolloApiKey,
+        'Authorization': `Bearer ${apolloApiKey}`,
       },
       body: JSON.stringify(requestBody),
     });
