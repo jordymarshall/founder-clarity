@@ -65,28 +65,27 @@ function generateApolloSearchCriteria(candidateProfile: any, customerSegment: an
 function extractJobTitlesFromProfile(candidateProfile: any): string[] {
   const titles: string[] = [];
   
-  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
   const customerSegmentText = candidateProfile.customerSegment?.toLowerCase() || '';
   
   // Founder/Leadership roles
-  if (earlyAdopterText.includes('founder') || earlyAdopterText.includes('ceo') || 
-      earlyAdopterText.includes('entrepreneur') || customerSegmentText.includes('founder')) {
+  if (customerSegmentText.includes('founder') || customerSegmentText.includes('ceo') || 
+      customerSegmentText.includes('entrepreneur') || customerSegmentText.includes('owner')) {
     titles.push('founder', 'ceo', 'co-founder', 'entrepreneur');
   }
   
   // Technical roles
-  if (earlyAdopterText.includes('technical') || earlyAdopterText.includes('engineer') || 
-      earlyAdopterText.includes('developer') || earlyAdopterText.includes('cto')) {
+  if (customerSegmentText.includes('technical') || customerSegmentText.includes('engineer') || 
+      customerSegmentText.includes('developer') || customerSegmentText.includes('cto')) {
     titles.push('cto', 'head of engineering', 'engineering manager', 'lead developer', 'software engineer');
   }
   
   // Product roles
-  if (earlyAdopterText.includes('product') || candidateProfile.hypothesizedJTBD?.toLowerCase().includes('product')) {
+  if (customerSegmentText.includes('product') || candidateProfile.hypothesizedJTBD?.toLowerCase().includes('product')) {
     titles.push('product manager', 'head of product', 'chief product officer', 'product owner');
   }
   
   // Business/Operations roles
-  if (earlyAdopterText.includes('business') || earlyAdopterText.includes('operations') ||
+  if (customerSegmentText.includes('business') || customerSegmentText.includes('operations') ||
       customerSegmentText.includes('owner') || customerSegmentText.includes('manager')) {
     titles.push('business owner', 'operations manager', 'general manager', 'director');
   }
@@ -109,12 +108,12 @@ function extractJobTitlesFromProfile(candidateProfile: any): string[] {
 function extractSenioritiesFromProfile(candidateProfile: any): string[] {
   const seniorities: string[] = [];
   
-  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
+  const customerSegmentText = candidateProfile.customerSegment?.toLowerCase() || '';
   const jtbdText = candidateProfile.hypothesizedJTBD?.toLowerCase() || '';
   
   // If targeting business growth or strategic decisions, need decision makers
   if (jtbdText.includes('grow') || jtbdText.includes('business') || jtbdText.includes('strategy') ||
-      earlyAdopterText.includes('owner') || earlyAdopterText.includes('founder')) {
+      customerSegmentText.includes('owner') || customerSegmentText.includes('founder')) {
     seniorities.push('c_suite', 'founder', 'vp', 'director');
   }
   
@@ -136,10 +135,8 @@ function extractCompanySizesFromProfile(candidateProfile: any): string[] {
   const sizes: string[] = [];
   
   const customerSegmentText = candidateProfile.customerSegment?.toLowerCase() || '';
-  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
   
-  if (customerSegmentText.includes('startup') || customerSegmentText.includes('small') ||
-      earlyAdopterText.includes('early-stage') || earlyAdopterText.includes('startup')) {
+  if (customerSegmentText.includes('startup') || customerSegmentText.includes('small')) {
     sizes.push('1,10', '11,50', '51,200');
   } else if (customerSegmentText.includes('enterprise') || customerSegmentText.includes('large')) {
     sizes.push('1000,5000', '5000,10000', '10000,');
@@ -160,7 +157,6 @@ function extractIndustriesFromProfile(candidateProfile: any, existingAlternative
   
   const allText = [
     candidateProfile.customerSegment || '',
-    candidateProfile.earlyAdopterSegment || '',
     candidateProfile.hypothesizedJTBD || '',
     candidateProfile.existingAlternative || ''
   ].join(' ').toLowerCase();
@@ -209,10 +205,7 @@ function extractIndustriesFromProfile(candidateProfile: any, existingAlternative
 function extractLocationsFromProfile(candidateProfile: any): string[] {
   const locations: string[] = [];
   
-  const allText = [
-    candidateProfile.customerSegment || '',
-    candidateProfile.earlyAdopterSegment || ''
-  ].join(' ').toLowerCase();
+  const allText = candidateProfile.customerSegment?.toLowerCase() || '';
   
   // Specific geographic mentions
   if (allText.includes('urban') || allText.includes('city') || allText.includes('metropolitan')) {

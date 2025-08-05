@@ -14,8 +14,7 @@ import { toast } from 'sonner';
 
 // Following Validation Masterclass Module 2 methodology
 interface InterviewCandidateProfile {
-  customerSegment: string;        // Broad customer segment
-  earlyAdopterSegment: string;    // Specific subset who feels pain most intensely  
+  customerSegment: string;        // Broad customer segment - focus on 90-day recency
   existingAlternative: string;    // What they're currently doing to solve the problem
   hypothesizedJTBD: string;       // Job to be Done they're trying to accomplish
   recencyFilter: string;          // How to find people who took action recently (90 days)
@@ -71,7 +70,6 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
   // Step 1: Define Interview Target Profile (Module 2 methodology)
   const [candidateProfile, setCandidateProfile] = useState<InterviewCandidateProfile>({
     customerSegment: '',
-    earlyAdopterSegment: '',
     existingAlternative: '',
     hypothesizedJTBD: '',
     recencyFilter: '',
@@ -264,11 +262,10 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
 
       setCandidateProfile({
         customerSegment: segments[0]?.text || '',
-        earlyAdopterSegment: segments[1]?.text || segments[0]?.text || '',
         existingAlternative: alternatives[0]?.text || 'Manual processes',
         hypothesizedJTBD: jobs[0]?.text || '',
-        recencyFilter: 'Recent activity on social media, job postings, or funding announcements within 90 days',
-        rationale: 'Based on hypothesis canvas analysis - this segment shows highest engagement and pain intensity'
+        recencyFilter: 'People who used alternatives within the last 90 days for accurate recall',
+        rationale: 'Focus on broad customer segment with recent alternative usage for factual insights'
       });
     }
   }, [customerSegment, coreProblem, jobToBeDone, existingAlternatives, candidateProfile.customerSegment]);
@@ -321,17 +318,6 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
                   <p className="text-xs text-muted-foreground mt-1">The broad group of people or businesses you believe have the problem</p>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    EARLY ADOPTER SEGMENT: Who feels the pain most intensely?
-                  </label>
-                  <Input
-                    placeholder="e.g., Coffee shop owners in business 1-3 years in competitive urban areas"
-                    value={candidateProfile.earlyAdopterSegment}
-                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, earlyAdopterSegment: e.target.value }))}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Specific subset who feels the problem most acutely and is already trying to solve it</p>
-                </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
@@ -385,8 +371,8 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
 
               <Button 
                 onClick={() => {
-                  if (candidateProfile.customerSegment && candidateProfile.earlyAdopterSegment && 
-                      candidateProfile.existingAlternative && candidateProfile.hypothesizedJTBD) {
+                  if (candidateProfile.customerSegment && candidateProfile.existingAlternative && 
+                      candidateProfile.hypothesizedJTBD) {
                     setProfileDefined(true);
                     generateApolloSearchCriteria();
                   } else {
@@ -394,8 +380,8 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
                   }
                 }}
                 className="w-full"
-                disabled={!candidateProfile.customerSegment || !candidateProfile.earlyAdopterSegment || 
-                         !candidateProfile.existingAlternative || !candidateProfile.hypothesizedJTBD}
+                disabled={!candidateProfile.customerSegment || !candidateProfile.existingAlternative || 
+                         !candidateProfile.hypothesizedJTBD}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Confirm Profile & Generate Apollo Search Criteria
@@ -427,7 +413,7 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Based on Early Adopter Segment: "{candidateProfile.earlyAdopterSegment}"
+                      Based on Customer Segment: "{candidateProfile.customerSegment}"
                     </p>
                   </div>
 
