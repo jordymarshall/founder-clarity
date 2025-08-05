@@ -396,7 +396,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                       </div>
                       <div className="space-y-3">
                         {card.content.slice(0, 2).map((bulletPoint, pointIndex) => (
-                          <div key={pointIndex} className="flex items-start gap-2">
+                          <div key={pointIndex} className="flex items-start gap-2 group">
                             <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
                               {pointIndex + 1}
                             </span>
@@ -405,6 +405,16 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                                 {bulletPoint.text}
                               </p>
                             </div>
+                            {card.content.length > 2 && (
+                              <Button
+                                onClick={() => handleRemoveBulletPoint(card.id, pointIndex)}
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         ))}
                         {card.content.length > 2 && (
@@ -446,23 +456,22 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
 
               <CollapsibleContent className="px-6 pb-6">
                 <div className="pt-4 border-t space-y-6">
-                  {/* Additional Insights (only show remaining ones) */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-foreground">Additional Insights</h4>
-                      <Button 
-                        onClick={() => handleAddBulletPoint(card.id)}
-                        size="sm" 
-                        variant="outline"
-                        className="h-7 text-xs"
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Point
-                      </Button>
-                    </div>
-                    
-                    {/* Remaining Content (skip first 2) */}
-                    {card.content.length > 2 && (
+                  {/* All Additional Insights (beyond first 2) */}
+                  {card.content.length > 2 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-foreground">More Insights</h4>
+                        <Button 
+                          onClick={() => handleAddBulletPoint(card.id)}
+                          size="sm" 
+                          variant="outline"
+                          className="h-7 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Point
+                        </Button>
+                      </div>
+                      
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Left - Additional Insights */}
                         <div className="space-y-3">
@@ -502,46 +511,61 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                           ))}
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Additional Pre-researched Alternatives */}
-                    {card.additionalContent.length > 0 && (
-                      <div className="border-t pt-4">
-                        <h5 className="text-sm font-medium text-foreground mb-3">Additional Alternatives</h5>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Left - Alternative Insights */}
-                          <div className="space-y-3">
-                            {card.additionalContent.map((bulletPoint, pointIndex) => (
-                              <div key={pointIndex} className="flex items-start gap-2">
-                                <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                                  {card.content.length + pointIndex + 1}
-                                </span>
-                                <div className="flex-1">
-                                  <p className="text-sm leading-relaxed text-foreground">
-                                    {bulletPoint.text}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* Right - Alternative Rationale */}
-                          <div className="space-y-3">
-                            {card.additionalContent.map((bulletPoint, pointIndex) => (
-                              <div key={pointIndex} className="flex items-start gap-2">
-                                <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                                  {card.content.length + pointIndex + 1}
-                                </span>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                  {bulletPoint.rationale}
+                  {/* Add button when no additional content to expand */}
+                  {card.content.length <= 2 && (
+                    <div className="border-t pt-4">
+                      <Button 
+                        onClick={() => handleAddBulletPoint(card.id)}
+                        size="sm" 
+                        variant="outline"
+                        className="h-7 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Point
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Pre-researched Alternatives */}
+                  {card.additionalContent.length > 0 && (
+                    <div className="border-t pt-4">
+                      <h5 className="text-sm font-medium text-foreground mb-3">Research-Based Alternatives</h5>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left - Alternative Insights */}
+                        <div className="space-y-3">
+                          {card.additionalContent.map((bulletPoint, pointIndex) => (
+                            <div key={pointIndex} className="flex items-start gap-2">
+                              <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                                •
+                              </span>
+                              <div className="flex-1">
+                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                  {bulletPoint.text}
                                 </p>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Right - Alternative Rationale */}
+                        <div className="space-y-3">
+                          {card.additionalContent.map((bulletPoint, pointIndex) => (
+                            <div key={pointIndex} className="flex items-start gap-2">
+                              <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                                •
+                              </span>
+                              <p className="text-sm text-muted-foreground leading-relaxed opacity-75">
+                                {bulletPoint.rationale}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Refinement Input for this card */}
                   <div className="border-t pt-4">
@@ -577,7 +601,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
           </Card>
         ))}
       </div>
-
     </div>
   );
 }
