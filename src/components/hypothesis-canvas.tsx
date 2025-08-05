@@ -627,15 +627,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         )}
                         {generatingPoints.includes(card.id) ? 'Generating...' : 'Generate Point'}
                       </Button>
-                      <Button 
-                        onClick={() => toggleResearch(card.id)}
-                        size="sm" 
-                        variant={showResearch.includes(card.id) ? "default" : "outline"}
-                        className="h-7 text-xs"
-                      >
-                        <Database className="h-3 w-3 mr-1" />
-                        Research Evidence
-                      </Button>
                     </div>
 
                     {/* CRM Research Panel */}
