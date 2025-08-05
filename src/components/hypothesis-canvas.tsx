@@ -38,6 +38,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [refinementInput, setRefinementInput] = useState('');
   const [cards, setCards] = useState<CanvasCard[]>([]);
   const [editingCard, setEditingCard] = useState<string | null>(null);
+  const [editingBullet, setEditingBullet] = useState<{ cardId: string; bulletIndex: number } | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const [refinementInputs, setRefinementInputs] = useState<Record<string, string>>({});
@@ -62,16 +63,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
             rationale: 'Survey of 200+ founders shows 68% rate customer discovery as biggest weakness'
           }
         ],
-        additionalContent: [
-          {
-            text: 'Solo founders or small teams (2-5 people) with limited resources',
-            rationale: 'Resource constraints force need for efficient validation methods'
-          },
-          {
-            text: 'B2B SaaS founders targeting SMB market',
-            rationale: 'Market segment with highest validation-to-success correlation'
-          }
-        ],
+        additionalContent: [],
         aiGenerated: true,
         dependsOn: []
       },
@@ -88,16 +80,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
             rationale: 'Average startup burns 6 months before realizing product-market misfit'
           }
         ],
-        additionalContent: [
-          {
-            text: 'Difficulty translating technical capabilities into customer value',
-            rationale: 'Technical founders often focus on features rather than outcomes'
-          },
-          {
-            text: 'Lack of systematic approach to customer discovery',
-            rationale: 'Most founders use ad-hoc methods without structured methodology'
-          }
-        ],
+        additionalContent: [],
         aiGenerated: true,
         dependsOn: ['customer-segment']
       },
@@ -114,16 +97,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
             rationale: 'High cost barrier excludes 89% of early-stage founders'
           }
         ],
-        additionalContent: [
-          {
-            text: 'Trial and error with rapid prototyping and A/B testing',
-            rationale: 'Resource-intensive approach with high failure rate'
-          },
-          {
-            text: 'Generic startup advice from books and courses',
-            rationale: 'Lacks personalization and actionable specificity'
-          }
-        ],
+        additionalContent: [],
         aiGenerated: true,
         dependsOn: ['core-problem']
       },
@@ -140,16 +114,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
             rationale: 'Cost-effectiveness enables iteration and learning cycles'
           }
         ],
-        additionalContent: [
-          {
-            text: 'Build confidence for funding and team recruitment',
-            rationale: 'Validation data increases investor confidence by 3.2x'
-          },
-          {
-            text: 'Develop deep customer empathy for product decisions',
-            rationale: 'Customer understanding drives product-market fit achievement'
-          }
-        ],
+        additionalContent: [],
         aiGenerated: true,
         dependsOn: ['customer-segment', 'core-problem', 'existing-alternatives']
       }
@@ -253,6 +218,21 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
     onCardsChange?.(updatedCards);
   };
 
+  const handleBulletEdit = (cardId: string, bulletIndex: number, field: 'text' | 'rationale', value: string) => {
+    const updatedCards = cards.map(card => {
+      if (card.id === cardId) {
+        const newContent = card.content.map((bullet, index) => 
+          index === bulletIndex ? { ...bullet, [field]: value } : bullet
+        );
+        return { ...card, content: newContent };
+      }
+      return card;
+    });
+    
+    setCards(updatedCards);
+    onCardsChange?.(updatedCards);
+  };
+
   const handleUpdateDependentCard = async (cardId: string) => {
     setIsGenerating(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -295,7 +275,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                 : item
             )
           : [{ text: card.content as string, rationale: 'Legacy data - add rationale' }],
-        additionalContent: card.additionalContent || []
+        additionalContent: []
       }));
       setCards(normalizedCards);
       setHasGenerated(true);
@@ -401,9 +381,31 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                               {pointIndex + 1}
                             </span>
                             <div className="flex-1">
-                              <p className="text-sm leading-relaxed text-foreground">
-                                {bulletPoint.text}
-                              </p>
+                              {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                                <Textarea
+                                  value={bulletPoint.text}
+                                  onChange={(e) => handleBulletEdit(card.id, pointIndex, 'text', e.target.value)}
+                                  onBlur={() => setEditingBullet(null)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      setEditingBullet(null);
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingBullet(null);
+                                    }
+                                  }}
+                                  className="min-h-[60px] text-sm"
+                                  autoFocus
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm leading-relaxed text-foreground cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                  onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
+                                >
+                                  {bulletPoint.text}
+                                </p>
+                              )}
                             </div>
                             {card.content.length > 2 && (
                               <Button
@@ -436,9 +438,31 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                             <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
                               {pointIndex + 1}
                             </span>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {bulletPoint.rationale}
-                            </p>
+                            {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                              <Textarea
+                                value={bulletPoint.rationale}
+                                onChange={(e) => handleBulletEdit(card.id, pointIndex, 'rationale', e.target.value)}
+                                onBlur={() => setEditingBullet(null)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    setEditingBullet(null);
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingBullet(null);
+                                  }
+                                }}
+                                className="min-h-[60px] text-sm"
+                                autoFocus
+                              />
+                            ) : (
+                              <p 
+                                className="text-sm text-muted-foreground leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
+                              >
+                                {bulletPoint.rationale}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -481,9 +505,31 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                                 {pointIndex + 3}
                               </span>
                               <div className="flex-1">
-                                <p className="text-sm leading-relaxed text-foreground">
-                                  {bulletPoint.text}
-                                </p>
+                                {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex + 2 ? (
+                                  <Textarea
+                                    value={bulletPoint.text}
+                                    onChange={(e) => handleBulletEdit(card.id, pointIndex + 2, 'text', e.target.value)}
+                                    onBlur={() => setEditingBullet(null)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        setEditingBullet(null);
+                                      }
+                                      if (e.key === 'Escape') {
+                                        setEditingBullet(null);
+                                      }
+                                    }}
+                                    className="min-h-[60px] text-sm"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <p 
+                                    className="text-sm leading-relaxed text-foreground cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                    onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex + 2 })}
+                                  >
+                                    {bulletPoint.text}
+                                  </p>
+                                )}
                               </div>
                               <Button
                                 onClick={() => handleRemoveBulletPoint(card.id, pointIndex + 2)}
@@ -497,16 +543,37 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                           ))}
                         </div>
 
-                        {/* Right - Additional Rationale */}
                         <div className="space-y-3">
                           {card.content.slice(2).map((bulletPoint, pointIndex) => (
                             <div key={pointIndex + 2} className="flex items-start gap-2">
                               <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
                                 {pointIndex + 3}
                               </span>
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {bulletPoint.rationale}
-                              </p>
+                              {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex + 2 ? (
+                                <Textarea
+                                  value={bulletPoint.rationale}
+                                  onChange={(e) => handleBulletEdit(card.id, pointIndex + 2, 'rationale', e.target.value)}
+                                  onBlur={() => setEditingBullet(null)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      setEditingBullet(null);
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingBullet(null);
+                                    }
+                                  }}
+                                  className="min-h-[60px] text-sm"
+                                  autoFocus
+                                />
+                              ) : (
+                                <p 
+                                  className="text-sm text-muted-foreground leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                  onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex + 2 })}
+                                >
+                                  {bulletPoint.rationale}
+                                </p>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -526,44 +593,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         <Plus className="h-3 w-3 mr-1" />
                         Add Point
                       </Button>
-                    </div>
-                  )}
-
-                  {/* Pre-researched Alternatives */}
-                  {card.additionalContent.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h5 className="text-sm font-medium text-foreground mb-3">Research-Based Alternatives</h5>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Left - Alternative Insights */}
-                        <div className="space-y-3">
-                          {card.additionalContent.map((bulletPoint, pointIndex) => (
-                            <div key={pointIndex} className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                                •
-                              </span>
-                              <div className="flex-1">
-                                <p className="text-sm leading-relaxed text-muted-foreground">
-                                  {bulletPoint.text}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Right - Alternative Rationale */}
-                        <div className="space-y-3">
-                          {card.additionalContent.map((bulletPoint, pointIndex) => (
-                            <div key={pointIndex} className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-5 h-5 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                                •
-                              </span>
-                              <p className="text-sm text-muted-foreground leading-relaxed opacity-75">
-                                {bulletPoint.rationale}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   )}
 
