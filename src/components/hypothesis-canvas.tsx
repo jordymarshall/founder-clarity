@@ -43,6 +43,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [hasGenerated, setHasGenerated] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const [expandedBullets, setExpandedBullets] = useState<string[]>([]);
+  const [generatingPoints, setGeneratingPoints] = useState<string[]>([]);
   const [refinementInputs, setRefinementInputs] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -236,6 +237,49 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
     
     setCards(updatedCards);
     onCardsChange?.(updatedCards);
+  };
+
+  const handleGenerateBulletPoint = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    setGeneratingPoints(prev => [...prev, cardId]);
+
+    try {
+      const response = await fetch('/functions/v1/generate-hypothesis-point', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cardTitle: card.title,
+          existingPoints: card.content,
+          idea: inputValue
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate point');
+      }
+
+      const { bulletPoint } = await response.json();
+
+      const updatedCards = cards.map(c => {
+        if (c.id === cardId) {
+          return { ...c, content: [...c.content, bulletPoint] };
+        }
+        return c;
+      });
+
+      setCards(updatedCards);
+      onCardsChange?.(updatedCards);
+    } catch (error) {
+      console.error('Error generating bullet point:', error);
+      // Fallback to manual addition
+      handleAddBulletPoint(cardId);
+    } finally {
+      setGeneratingPoints(prev => prev.filter(id => id !== cardId));
+    }
   };
 
   const handleRemoveBulletPoint = (cardId: string, bulletIndex: number) => {
@@ -541,13 +585,18 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         Add Point
                       </Button>
                       <Button 
-                        onClick={() => handleAddBulletPoint(card.id)}
+                        onClick={() => handleGenerateBulletPoint(card.id)}
+                        disabled={generatingPoints.includes(card.id)}
                         size="sm" 
                         variant="outline"
                         className="h-7 text-xs"
                       >
-                        <Sparkles className="h-3 w-3 mr-1" />
-                        Generate Point
+                        {generatingPoints.includes(card.id) ? (
+                          <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3 mr-1" />
+                        )}
+                        {generatingPoints.includes(card.id) ? 'Generating...' : 'Generate Point'}
                       </Button>
                     </div>
 
