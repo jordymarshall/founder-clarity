@@ -322,10 +322,6 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
                       <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <span><strong>Recent Activity (90 days):</strong> {candidateProfile.recencyFilter}</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span><strong>Why This Segment:</strong> {candidateProfile.rationale}</span>
-                    </li>
                   </ul>
                   
                   <Button 
