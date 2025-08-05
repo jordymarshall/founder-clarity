@@ -79,6 +79,8 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const handleGenerateCanvas = async (ideaText: string) => {
     setIsGenerating(true);
     setShowCanvas(true);
+    setCards([]); // Clear existing cards first
+    onCardsChange?.([]); // Clear persisted cards too
     
     try {
       const generatedCards = await mockAnalyzeIdea(ideaText);
