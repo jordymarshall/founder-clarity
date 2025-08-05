@@ -2,14 +2,15 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Sparkles, RefreshCw } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Card } from '@/components/ui/card';
+import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CanvasCard {
   id: string;
   title: string;
-  content: string;
+  content: string[];
   aiGenerated: boolean;
   reasoning?: string;
   dependsOn?: string[];
@@ -33,6 +34,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [cards, setCards] = useState<CanvasCard[]>([]);
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Mock AI analysis function
@@ -44,33 +46,53 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
       {
         id: 'customer-segment',
         title: 'Customer Segment',
-        content: 'Early-stage startup founders who struggle with product-market fit and waste time building features nobody wants.',
+        content: [
+          'Early-stage startup founders (pre-seed to Series A)',
+          'Entrepreneurs who have built products before but struggled with product-market fit',
+          'Technical founders who excel at building but struggle with customer discovery',
+          'Solo founders or small teams (2-5 people) with limited validation resources'
+        ],
         aiGenerated: true,
-        reasoning: 'Based on analysis of 500+ startup forums and YC posts, this segment shows highest engagement with validation-related content.',
+        reasoning: 'Based on analysis of 500+ startup forums and YC posts, this segment shows highest engagement with validation-related content. Technical founders consistently report customer discovery as their biggest weakness.',
         dependsOn: []
       },
       {
         id: 'core-problem',
         title: 'Core Problem', 
-        content: 'Founders often build based on assumptions rather than validated customer problems, leading to failed products and wasted resources.',
+        content: [
+          'Building features based on assumptions rather than validated customer problems',
+          'Spending months developing products that customers don\'t actually want',
+          'Difficulty translating technical capabilities into customer value propositions',
+          'Wasting limited runway on wrong priorities due to lack of customer insight'
+        ],
         aiGenerated: true,
-        reasoning: 'Primary pain point mentioned in 73% of startup failure post-mortems. Strong correlation with lack of customer validation.',
+        reasoning: 'Primary pain point mentioned in 73% of startup failure post-mortems. Strong correlation with lack of customer validation. CB Insights reports 42% of startups fail due to "no market need."',
         dependsOn: ['customer-segment']
       },
       {
         id: 'existing-alternatives',
         title: 'Existing Alternatives',
-        content: 'Basic survey tools, expensive consultants, trial and error approach, or following generic startup advice from books.',
+        content: [
+          'Basic survey tools like Google Forms or Typeform for customer feedback',
+          'Expensive consultants ($5K-50K) for market research and validation',
+          'Trial and error approach with rapid prototyping and A/B testing',
+          'Following generic startup advice from books like "Lean Startup"'
+        ],
         aiGenerated: true,
-        reasoning: 'Most common solutions mentioned in 200+ founder interviews. None provide systematic approach with AI guidance.',
+        reasoning: 'Most common solutions mentioned in 200+ founder interviews. None provide systematic approach with AI guidance. Current alternatives either lack depth (surveys) or are cost-prohibitive (consultants).',
         dependsOn: ['core-problem']
       },
       {
         id: 'job-to-be-done',
         title: 'Job to be Done',
-        content: 'When founders have a business idea, they want to quickly validate if there\'s a real market need before investing time and money in building.',
+        content: [
+          'Quickly validate if there\'s real market demand before building',
+          'Understand customer problems deeply enough to build the right solution',
+          'Get actionable insights without spending months or tens of thousands on research',
+          'Build confidence in their direction to secure funding and team buy-in'
+        ],
         aiGenerated: true,
-        reasoning: 'Core JTBD extracted from Jobs-to-be-Done theory applied to early-stage validation process.',
+        reasoning: 'Core JTBD extracted from Jobs-to-be-Done theory applied to early-stage validation process. Validated through 50+ founder interviews and analysis of successful validation case studies.',
         dependsOn: ['customer-segment', 'core-problem', 'existing-alternatives']
       }
     ];
@@ -125,8 +147,17 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
     setIsGenerating(false);
   };
 
+  // Toggle card expansion
+  const toggleCard = (cardId: string) => {
+    setExpandedCards(prev => 
+      prev.includes(cardId) 
+        ? prev.filter(id => id !== cardId)
+        : [...prev, cardId]
+    );
+  };
+
   // Card editing functions
-  const handleCardEdit = (cardId: string, newContent: string) => {
+  const handleCardEdit = (cardId: string, newContent: string[]) => {
     const updatedCards = cards.map(card => {
       if (card.id === cardId) {
         return { ...card, content: newContent, aiGenerated: false };
@@ -233,22 +264,125 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
         </div>
       )}
 
-      {/* Canvas Grid */}
-      <div className="max-w-4xl mx-auto">
-        <div className="grid gap-6 md:grid-cols-2">
-              {cards.map((card, index) => (
-                <CanvasCard
-                  key={card.id}
-                  card={card}
-                  index={index}
-                  isEditing={editingCard === card.id}
-                  onEdit={() => setEditingCard(card.id)}
-                  onSave={(content) => handleCardEdit(card.id, content)}
-                  onCancel={() => setEditingCard(null)}
-                  onUpdateDependent={() => handleUpdateDependentCard(card.id)}
-                />
-              ))}
-        </div>
+      {/* Canvas Rows */}
+      <div className="max-w-6xl mx-auto space-y-4">
+        {cards.map((card, index) => (
+          <Card 
+            key={card.id}
+            className={cn(
+              "transition-all duration-300",
+              "animate-fade-in",
+              card.needsUpdate && "ring-2 ring-yellow-500/20"
+            )}
+            style={{ 
+              animationDelay: `${index * 150}ms`,
+              animationFillMode: 'both'
+            }}
+          >
+            <Collapsible
+              open={expandedCards.includes(card.id)}
+              onOpenChange={() => toggleCard(card.id)}
+            >
+              <CollapsibleTrigger asChild>
+                <div className="flex items-center justify-between p-6 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left Column - Main Content */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-subtle uppercase tracking-wide text-sm font-medium">
+                          {card.title}
+                        </h3>
+                        {card.aiGenerated && (
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        )}
+                        {card.needsUpdate && (
+                          <RefreshCw className="h-4 w-4 text-yellow-500 animate-pulse" />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {card.content.slice(0, 2).map((point, pointIndex) => (
+                          <div key={pointIndex} className="flex items-start gap-2">
+                            <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                              {pointIndex + 1}
+                            </span>
+                            <p className="text-sm leading-relaxed text-foreground">
+                              {point}
+                            </p>
+                          </div>
+                        ))}
+                        {card.content.length > 2 && (
+                          <p className="text-xs text-muted-foreground ml-7">
+                            +{card.content.length - 2} more insights...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Column - Rationale */}
+                    <div className="space-y-3">
+                      <h4 className="text-subtle uppercase tracking-wide text-sm font-medium">
+                        AI Rationale
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {card.reasoning}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <ChevronRight 
+                    className={cn(
+                      "h-5 w-5 transition-transform duration-200 ml-4 flex-shrink-0",
+                      expandedCards.includes(card.id) && "rotate-90"
+                    )}
+                  />
+                </div>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="px-6 pb-6">
+                <div className="pt-4 border-t">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Expanded Content */}
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-foreground">Complete Analysis</h4>
+                      <div className="space-y-2">
+                        {card.content.map((point, pointIndex) => (
+                          <div key={pointIndex} className="flex items-start gap-2">
+                            <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                              {pointIndex + 1}
+                            </span>
+                            <p className="text-sm leading-relaxed text-foreground">
+                              {point}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sources & Evidence (Placeholder) */}
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-foreground">Sources & Evidence</h4>
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <p>• YC Startup School data (500+ companies)</p>
+                        <p>• CB Insights failure analysis</p>
+                        <p>• Customer discovery interviews</p>
+                        <p>• Lean Startup methodology studies</p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-3"
+                        disabled
+                      >
+                        <Info className="h-4 w-4 mr-2" />
+                        View Detailed Sources (Coming Soon)
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        ))}
       </div>
 
       {/* Continuous Discovery Input */}
@@ -280,98 +414,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-// Canvas Card Component
-interface CanvasCardProps {
-  card: CanvasCard;
-  index: number;
-  isEditing: boolean;
-  onEdit: () => void;
-  onSave: (content: string) => void;
-  onCancel: () => void;
-  onUpdateDependent: () => void;
-}
-
-function CanvasCard({ card, index, isEditing, onEdit, onSave, onCancel, onUpdateDependent }: CanvasCardProps) {
-  const [editContent, setEditContent] = useState(card.content);
-
-  useEffect(() => {
-    setEditContent(card.content);
-  }, [card.content]);
-
-  const handleSave = () => {
-    onSave(editContent);
-  };
-
-  return (
-    <div 
-      className={cn(
-        "relative p-6 bg-card border border-border rounded-lg transition-all duration-300",
-        "animate-fade-in",
-        card.needsUpdate && "ring-2 ring-yellow-500/20"
-      )}
-      style={{ 
-        animationDelay: `${index * 150}ms`,
-        animationFillMode: 'both'
-      }}
-    >
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-subtle uppercase tracking-wide">{card.title}</h3>
-          <div className="flex items-center gap-2">
-            {card.aiGenerated && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-1 h-auto">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="space-y-2">
-                    <p className="font-medium text-sm">AI Reasoning</p>
-                    <p className="text-xs text-muted-foreground">{card.reasoning}</p>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-            {card.needsUpdate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onUpdateDependent}
-                className="p-1 h-auto"
-              >
-                <RefreshCw className="h-4 w-4 text-yellow-500 animate-pulse" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {isEditing ? (
-          <div className="space-y-3">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[100px] bg-background border-primary/20 focus:ring-2 focus:ring-primary/20"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleSave}>Save</Button>
-              <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
-            </div>
-          </div>
-        ) : (
-          <div 
-            className="text-body leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-2 -m-2 transition-colors"
-            onClick={onEdit}
-          >
-            {card.content}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
