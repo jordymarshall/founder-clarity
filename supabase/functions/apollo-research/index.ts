@@ -74,6 +74,9 @@ serve(async (req) => {
       body: JSON.stringify(requestBody),
     });
 
+    console.log('Apollo API request body:', JSON.stringify(requestBody, null, 2));
+    console.log('Apollo API response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Apollo API error:', response.status, errorText);

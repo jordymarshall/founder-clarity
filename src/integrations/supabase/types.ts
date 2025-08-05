@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      interview_candidates: {
+        Row: {
+          apollo_id: string | null
+          company: string | null
+          company_domain: string | null
+          company_size: number | null
+          contact_attempts: number | null
+          created_at: string
+          email: string | null
+          email_status: string | null
+          first_name: string | null
+          headline: string | null
+          id: string
+          idea: string
+          industry: string | null
+          interview_date: string | null
+          last_contact_date: string | null
+          last_name: string | null
+          linkedin_url: string | null
+          location: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          photo_url: string | null
+          seniority: string | null
+          status: string
+          title: string | null
+          twitter_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apollo_id?: string | null
+          company?: string | null
+          company_domain?: string | null
+          company_size?: number | null
+          contact_attempts?: number | null
+          created_at?: string
+          email?: string | null
+          email_status?: string | null
+          first_name?: string | null
+          headline?: string | null
+          id?: string
+          idea: string
+          industry?: string | null
+          interview_date?: string | null
+          last_contact_date?: string | null
+          last_name?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          seniority?: string | null
+          status?: string
+          title?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apollo_id?: string | null
+          company?: string | null
+          company_domain?: string | null
+          company_size?: number | null
+          contact_attempts?: number | null
+          created_at?: string
+          email?: string | null
+          email_status?: string | null
+          first_name?: string | null
+          headline?: string | null
+          id?: string
+          idea?: string
+          industry?: string | null
+          interview_date?: string | null
+          last_contact_date?: string | null
+          last_name?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          seniority?: string | null
+          status?: string
+          title?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

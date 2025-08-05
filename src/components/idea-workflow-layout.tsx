@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InterviewScriptScreen } from '@/components/interview-script-screen';
-import { EvidenceSearch } from '@/components/evidence-search';
+import { EvidenceTab } from '@/components/evidence-tab';
 import { HypothesisCanvas } from '@/components/hypothesis-canvas';
 import { ArrowLeft } from 'lucide-react';
 
@@ -85,7 +85,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
                 <p className="text-muted-foreground">Find and connect with your target customers</p>
               </div>
               
-              <EvidenceSearch 
+              <EvidenceTab 
                 idea={idea}
                 customerSegment={canvasCards.find(card => card.id === 'customer-segment')}
                 coreProblem={canvasCards.find(card => card.id === 'core-problem')}
