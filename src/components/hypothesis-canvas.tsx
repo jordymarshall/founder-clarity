@@ -547,7 +547,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
 
                     {/* Refinement Input */}
                     <div className="border-t pt-4">
-                      <h5 className="text-sm font-medium text-foreground mb-3">Continuous Discovery</h5>
                       <div className="flex gap-2">
                         <Input
                           value={refinementInputs[card.id] || ''}
