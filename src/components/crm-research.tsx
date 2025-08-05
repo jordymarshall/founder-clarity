@@ -95,7 +95,7 @@ export function CRMResearch({ onAddEvidence }: CRMResearchProps) {
           break;
       }
 
-      const response = await fetch('/functions/v1/clearbit-research', {
+      const response = await fetch('/functions/v1/apollo-research', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export function CRMResearch({ onAddEvidence }: CRMResearchProps) {
           variant="outline"
           onClick={() => handleAddEvidence(
             `${company.name} - ${company.industry} company with ${company.employees} employees`,
-            `Clearbit - ${company.domain}`
+            `Apollo.io - ${company.domain}`
           )}
         >
           Add Evidence
@@ -213,7 +213,7 @@ export function CRMResearch({ onAddEvidence }: CRMResearchProps) {
           variant="outline"
           onClick={() => handleAddEvidence(
             `${person.name} - ${person.title} at ${person.company}`,
-            `Clearbit - ${person.email}`
+            `Apollo.io - ${person.email}`
           )}
         >
           Add Evidence
