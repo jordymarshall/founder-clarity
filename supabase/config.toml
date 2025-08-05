@@ -1,1 +1,10 @@
 project_id = "xhcttgvaokqfxcidhmtg"
+
+[functions.apollo-research]
+verify_jwt = false
+
+[functions.generate-interview-criteria]
+verify_jwt = false
+
+[functions.generate-hypothesis-point]
+verify_jwt = false

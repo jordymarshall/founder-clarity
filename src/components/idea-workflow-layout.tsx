@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InterviewScriptScreen } from '@/components/interview-script-screen';
+import { EvidenceSearch } from '@/components/evidence-search';
 import { HypothesisCanvas } from '@/components/hypothesis-canvas';
 import { ArrowLeft } from 'lucide-react';
 
@@ -78,34 +79,18 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
 
           {/* Module 2: Finding Evidence */}
           <TabsContent value="module2" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-semibold">Module 2: The Search for Evidence</h2>
                 <p className="text-muted-foreground">Find and connect with your target customers</p>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Candidate Identification</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
-                    [List potential interviewees who match your customer segment and have recent relevant experience]
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Outreach Strategy</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
-                    [How will you reach out? What's your learning frame approach?]
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Interview Schedule</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
-                    [Track your scheduled interviews and their status]
-                  </div>
-                </div>
-              </div>
+              <EvidenceSearch 
+                idea={idea}
+                customerSegment={canvasCards.find(card => card.id === 'customer-segment')}
+                coreProblem={canvasCards.find(card => card.id === 'core-problem')}
+                jobToBeDone={canvasCards.find(card => card.id === 'job-to-be-done')}
+              />
             </div>
           </TabsContent>
 

@@ -29,6 +29,18 @@ serve(async (req) => {
         endpoint = 'https://api.apollo.io/v1/people/match';
         requestBody = { email: query };
         break;
+      case 'people_search':
+        endpoint = 'https://api.apollo.io/v1/mixed_people/search';
+        requestBody = {
+          person_titles: query.person_titles || [],
+          person_seniorities: query.person_seniorities || [],
+          organization_num_employees_ranges: query.organization_num_employees_ranges || [],
+          organization_industries: query.organization_industries || [],
+          person_locations: query.person_locations || [],
+          page: query.page || 1,
+          per_page: query.per_page || 5
+        };
+        break;
       case 'prospector':
         endpoint = 'https://api.apollo.io/v1/mixed_people/search';
         requestBody = {
@@ -102,6 +114,32 @@ serve(async (req) => {
           linkedin: person.linkedin_url,
           twitter: person.twitter_url,
           bio: person.headline
+        };
+        break;
+      case 'people_search':
+        formattedData = {
+          people: data.people?.map((person: any) => ({
+            id: person.id,
+            name: person.name,
+            first_name: person.first_name,
+            last_name: person.last_name,
+            email: person.email,
+            title: person.title,
+            seniority: person.seniority,
+            company: person.organization?.name,
+            company_domain: person.organization?.website_url,
+            industry: person.organization?.industry,
+            company_size: person.organization?.estimated_num_employees,
+            location: `${person.city || ''}, ${person.state || ''}, ${person.country || ''}`.replace(/^, |, $|, ,/g, ''),
+            linkedin: person.linkedin_url,
+            twitter: person.twitter_url,
+            phone: person.sanitized_phone,
+            email_status: person.email_status,
+            photo_url: person.photo_url,
+            headline: person.headline
+          })) || [],
+          pagination: data.pagination || {},
+          total_entries: data.pagination?.total_entries || 0
         };
         break;
       case 'prospector':
