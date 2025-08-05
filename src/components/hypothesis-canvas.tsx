@@ -624,7 +624,10 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Try: "Focus more on B2B customers" or "Add mobile app alternatives"
+                        {card.id === 'customer-segment' && 'Try: "Focus on B2B vs B2C" or "Add demographic details like company size"'}
+                        {card.id === 'core-problem' && 'Try: "Explore emotional pain points" or "Add urgency and frequency details"'}
+                        {card.id === 'existing-alternatives' && 'Try: "Include DIY solutions" or "Research competitor pricing models"'}
+                        {card.id === 'job-to-be-done' && 'Try: "Define success metrics" or "Explore social/emotional outcomes"'}
                       </p>
                     </div>
                   </div>
