@@ -8,29 +8,26 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, RefreshCw, ExternalLink, Mail, Phone, MapPin, Building, User, Loader2, Target, Users, CheckCircle } from 'lucide-react';
+import { Sparkles, RefreshCw, ExternalLink, Mail, Phone, MapPin, Building, User, Loader2, Target, Users, CheckCircle, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface SegmentFocus {
-  who: string;
-  situation: string;
-  struggle: string;
-  outcome: string;
-  rationale: string;
+// Following Validation Masterclass Module 2 methodology
+interface InterviewCandidateProfile {
+  customerSegment: string;        // Broad customer segment
+  earlyAdopterSegment: string;    // Specific subset who feels pain most intensely  
+  existingAlternative: string;    // What they're currently doing to solve the problem
+  hypothesizedJTBD: string;       // Job to be Done they're trying to accomplish
+  recencyFilter: string;          // How to find people who took action recently (90 days)
+  rationale: string;              // Why focus on this segment first
 }
 
-interface SearchCriteria {
+interface ApolloSearchCriteria {
   person_titles: string[];
-  person_titles_rationale: string;
   person_seniorities: string[];
-  person_seniorities_rationale: string;
   organization_num_employees_ranges: string[];
-  company_size_rationale: string;
   organization_industries: string[];
-  industry_rationale: string;
   person_locations: string[];
-  location_rationale: string;
 }
 
 interface Candidate {
@@ -67,21 +64,23 @@ interface EvidenceTabProps {
   customerSegment?: any;
   coreProblem?: any;
   jobToBeDone?: any;
+  existingAlternatives?: any;
 }
 
-export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }: EvidenceTabProps) {
-  // Step 1: Segment Definition
-  const [segmentFocus, setSegmentFocus] = useState<SegmentFocus>({
-    who: '',
-    situation: '',
-    struggle: '',
-    outcome: '',
+export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, existingAlternatives }: EvidenceTabProps) {
+  // Step 1: Define Interview Target Profile (Module 2 methodology)
+  const [candidateProfile, setCandidateProfile] = useState<InterviewCandidateProfile>({
+    customerSegment: '',
+    earlyAdopterSegment: '',
+    existingAlternative: '',
+    hypothesizedJTBD: '',
+    recencyFilter: '',
     rationale: ''
   });
-  const [segmentDefined, setSegmentDefined] = useState(false);
+  const [profileDefined, setProfileDefined] = useState(false);
 
-  // Step 2: Interview Criteria
-  const [criteria, setCriteria] = useState<SearchCriteria | null>(null);
+  // Step 2: Apollo Search Criteria Generation
+  const [apolloCriteria, setApolloCriteria] = useState<ApolloSearchCriteria | null>(null);
   const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
 
   // Step 3: Candidate Search & CRM
@@ -90,7 +89,7 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalEntries, setTotalEntries] = useState(0);
-  const [activeTab, setActiveTab] = useState('segment');
+  const [activeTab, setActiveTab] = useState('profile');
 
   // Load saved candidates from database
   const loadSavedCandidates = async () => {
@@ -185,27 +184,28 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
     }
   };
 
-  // Generate criteria from segment focus
-  const generateCriteria = async () => {
-    if (!segmentDefined) return;
+  // Generate Apollo criteria from interview candidate profile
+  const generateApolloSearchCriteria = async () => {
+    if (!profileDefined) return;
 
     setIsGeneratingCriteria(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-interview-criteria', {
         body: {
           idea,
-          segmentFocus,
+          candidateProfile,
           customerSegment,
           coreProblem,
-          jobToBeDone
+          jobToBeDone,
+          existingAlternatives
         }
       });
 
       if (error) throw error;
 
-      setCriteria(data.criteria);
+      setApolloCriteria(data.criteria);
       setActiveTab('search');
-      toast.success('Interview criteria generated successfully');
+      toast.success('Apollo search criteria generated successfully');
     } catch (error) {
       console.error('Error generating criteria:', error);
       toast.error('Failed to generate criteria');
@@ -214,9 +214,9 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
     }
   };
 
-  // Search candidates
+  // Search candidates using Apollo
   const searchCandidates = async (page = 1, loadMore = false) => {
-    if (!criteria) return;
+    if (!apolloCriteria) return;
 
     setIsSearching(true);
     try {
@@ -224,11 +224,11 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
         body: {
           type: 'people_search',
           query: {
-            person_titles: criteria.person_titles,
-            person_seniorities: criteria.person_seniorities,
-            organization_num_employees_ranges: criteria.organization_num_employees_ranges,
-            organization_industries: criteria.organization_industries,
-            person_locations: criteria.person_locations,
+            person_titles: apolloCriteria.person_titles,
+            person_seniorities: apolloCriteria.person_seniorities,
+            organization_num_employees_ranges: apolloCriteria.organization_num_employees_ranges,
+            organization_industries: apolloCriteria.organization_industries,
+            person_locations: apolloCriteria.person_locations,
             page,
             per_page: 5
           }
@@ -254,22 +254,24 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
     }
   };
 
-  // Auto-populate segment from hypothesis canvas
+  // Auto-populate interview profile from hypothesis canvas (following methodology)
   useEffect(() => {
-    if (customerSegment && !segmentFocus.who) {
+    if (customerSegment && !candidateProfile.customerSegment) {
       const segments = customerSegment.content || [];
       const problems = coreProblem?.content || [];
       const jobs = jobToBeDone?.content || [];
+      const alternatives = existingAlternatives?.content || [];
 
-      setSegmentFocus({
-        who: segments[0]?.text || '',
-        situation: segments[1]?.text || '',
-        struggle: problems[0]?.text || '',
-        outcome: jobs[0]?.text || '',
-        rationale: 'Based on hypothesis canvas analysis'
+      setCandidateProfile({
+        customerSegment: segments[0]?.text || '',
+        earlyAdopterSegment: segments[1]?.text || segments[0]?.text || '',
+        existingAlternative: alternatives[0]?.text || 'Manual processes',
+        hypothesizedJTBD: jobs[0]?.text || '',
+        recencyFilter: 'Recent activity on social media, job postings, or funding announcements within 90 days',
+        rationale: 'Based on hypothesis canvas analysis - this segment shows highest engagement and pain intensity'
       });
     }
-  }, [customerSegment, coreProblem, jobToBeDone, segmentFocus.who]);
+  }, [customerSegment, coreProblem, jobToBeDone, existingAlternatives, candidateProfile.customerSegment]);
 
   useEffect(() => {
     loadSavedCandidates();
@@ -279,11 +281,11 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="segment" className="flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Define Segment
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Interview Profile
           </TabsTrigger>
-          <TabsTrigger value="search" className="flex items-center gap-2" disabled={!segmentDefined}>
+          <TabsTrigger value="search" className="flex items-center gap-2" disabled={!profileDefined}>
             <Sparkles className="h-4 w-4" />
             Find Candidates
           </TabsTrigger>
@@ -293,62 +295,78 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
           </TabsTrigger>
         </TabsList>
 
-        {/* Step 1: Segment Definition */}
-        <TabsContent value="segment" className="space-y-6">
+        {/* Step 1: Interview Candidate Profile (Following Module 2) */}
+        <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Define Your Interview Target Segment
+                <BookOpen className="h-5 w-5 text-primary" />
+                Module 2: Define Interview Candidate Profile
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Following validation masterclass methodology, clearly define who you want to interview and why.
+                Following validation masterclass methodology - identify people who match your customer segment and have recent, relevant experience.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    WHO: Describe your specific target person
+                    CUSTOMER SEGMENT: Broad group who has the problem
                   </label>
                   <Input
-                    placeholder="e.g., Early-stage B2B SaaS founders with 2-10 employees"
-                    value={segmentFocus.who}
-                    onChange={(e) => setSegmentFocus(prev => ({ ...prev, who: e.target.value }))}
+                    placeholder="e.g., Small, independent coffee shop owners"
+                    value={candidateProfile.customerSegment}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, customerSegment: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">The broad group of people or businesses you believe have the problem</p>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    SITUATION: What situation are they in?
+                    EARLY ADOPTER SEGMENT: Who feels the pain most intensely?
                   </label>
                   <Input
-                    placeholder="e.g., Building their first product, struggling with customer discovery"
-                    value={segmentFocus.situation}
-                    onChange={(e) => setSegmentFocus(prev => ({ ...prev, situation: e.target.value }))}
+                    placeholder="e.g., Coffee shop owners in business 1-3 years in competitive urban areas"
+                    value={candidateProfile.earlyAdopterSegment}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, earlyAdopterSegment: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Specific subset who feels the problem most acutely and is already trying to solve it</p>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    STRUGGLE: What specific problem do they face?
+                    EXISTING ALTERNATIVE: What are they doing now to solve it?
                   </label>
                   <Input
-                    placeholder="e.g., Wasting time building features customers don't want"
-                    value={segmentFocus.struggle}
-                    onChange={(e) => setSegmentFocus(prev => ({ ...prev, struggle: e.target.value }))}
+                    placeholder="e.g., Manually posting on Instagram, hiring freelance social media managers"
+                    value={candidateProfile.existingAlternative}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, existingAlternative: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Evidence the problem is real - never "nothing" (could be competitor, spreadsheet, manual process)</p>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    OUTCOME: What do they want to achieve?
+                    HYPOTHESIZED JOB TO BE DONE: What progress are they trying to make?
                   </label>
                   <Input
-                    placeholder="e.g., Validate product-market fit before burning runway"
-                    value={segmentFocus.outcome}
-                    onChange={(e) => setSegmentFocus(prev => ({ ...prev, outcome: e.target.value }))}
+                    placeholder="e.g., Attract new customers to grow the business"
+                    value={candidateProfile.hypothesizedJTBD}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, hypothesizedJTBD: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">The bigger context - underlying progress the customer is trying to make</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    RECENCY FILTER: How to find people with fresh stories (90 days)?
+                  </label>
+                  <Input
+                    placeholder="e.g., Recent social media activity, job postings, funding announcements"
+                    value={candidateProfile.recencyFilter}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, recencyFilter: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Focus on people who took action recently - their memories will be fresh and detailed</p>
                 </div>
 
                 <div>
@@ -356,70 +374,85 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
                     RATIONALE: Why focus on this segment first?
                   </label>
                   <Textarea
-                    placeholder="e.g., This segment has the highest urgency and decision-making authority..."
-                    value={segmentFocus.rationale}
-                    onChange={(e) => setSegmentFocus(prev => ({ ...prev, rationale: e.target.value }))}
+                    placeholder="e.g., This segment shows highest engagement with validation content and rates customer discovery as biggest weakness..."
+                    value={candidateProfile.rationale}
+                    onChange={(e) => setCandidateProfile(prev => ({ ...prev, rationale: e.target.value }))}
                     className="min-h-[80px]"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Evidence-based reasoning for why this is the right segment to interview first</p>
                 </div>
               </div>
 
               <Button 
                 onClick={() => {
-                  if (segmentFocus.who && segmentFocus.situation && segmentFocus.struggle && segmentFocus.outcome) {
-                    setSegmentDefined(true);
-                    generateCriteria();
+                  if (candidateProfile.customerSegment && candidateProfile.earlyAdopterSegment && 
+                      candidateProfile.existingAlternative && candidateProfile.hypothesizedJTBD) {
+                    setProfileDefined(true);
+                    generateApolloSearchCriteria();
                   } else {
-                    toast.error('Please fill in all fields');
+                    toast.error('Please fill in all required fields');
                   }
                 }}
                 className="w-full"
-                disabled={!segmentFocus.who || !segmentFocus.situation || !segmentFocus.struggle || !segmentFocus.outcome}
+                disabled={!candidateProfile.customerSegment || !candidateProfile.earlyAdopterSegment || 
+                         !candidateProfile.existingAlternative || !candidateProfile.hypothesizedJTBD}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm Segment & Generate Search Criteria
+                Confirm Profile & Generate Apollo Search Criteria
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Step 2: Search Candidates */}
+        {/* Step 2: Apollo Search Criteria */}
         <TabsContent value="search" className="space-y-6">
-          {criteria && (
+          {apolloCriteria && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  AI-Generated Search Criteria
+                  Apollo Search Criteria (Generated from Interview Profile)
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  AI translated your interview candidate profile into Apollo API search parameters
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4">
                   <div>
                     <h4 className="font-medium mb-2">Target Job Titles</h4>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {criteria.person_titles.map((title, index) => (
+                      {apolloCriteria.person_titles.map((title, index) => (
                         <Badge key={index} variant="secondary">{title}</Badge>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Based on Early Adopter Segment: "{candidateProfile.earlyAdopterSegment}"
+                    </p>
                   </div>
 
                   <div>
                     <h4 className="font-medium mb-2">Company Size</h4>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {criteria.organization_num_employees_ranges.map((range, index) => (
+                      {apolloCriteria.organization_num_employees_ranges.map((range, index) => (
                         <Badge key={index} variant="outline">{range} employees</Badge>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Matching Customer Segment: "{candidateProfile.customerSegment}"
+                    </p>
                   </div>
 
                   <div>
                     <h4 className="font-medium mb-2">Industries</h4>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      {criteria.organization_industries.map((industry, index) => (
+                      {apolloCriteria.organization_industries.map((industry, index) => (
                         <Badge key={index} variant="secondary">{industry}</Badge>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Supporting JTBD: "{candidateProfile.hypothesizedJTBD}"
+                    </p>
                   </div>
                 </div>
 
@@ -439,11 +472,14 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
             </Card>
           )}
 
-          {/* Search Results */}
+          {/* Apollo Search Results */}
           {candidates.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Interview Candidates ({totalEntries} total found)</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  These candidates match your interview profile criteria and recency filter
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -522,19 +558,22 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone }:
           )}
         </TabsContent>
 
-        {/* Step 3: Interview CRM */}
+        {/* Step 3: Interview CRM Pipeline */}
         <TabsContent value="crm" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                Interview Pipeline
+                Interview Pipeline Management
               </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Track your interview candidates through the validation process
+              </p>
             </CardHeader>
             <CardContent>
               {savedCandidates.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No candidates saved yet. Add candidates from the search results.
+                  No interview candidates saved yet. Add candidates from your Apollo search results above.
                 </div>
               ) : (
                 <div className="space-y-4">

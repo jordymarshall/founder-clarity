@@ -90,6 +90,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
                 customerSegment={canvasCards.find(card => card.id === 'customer-segment')}
                 coreProblem={canvasCards.find(card => card.id === 'core-problem')}
                 jobToBeDone={canvasCards.find(card => card.id === 'job-to-be-done')}
+                existingAlternatives={canvasCards.find(card => card.id === 'existing-alternatives')}
               />
             </div>
           </TabsContent>

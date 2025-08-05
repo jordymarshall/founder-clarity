@@ -13,12 +13,12 @@ serve(async (req) => {
   }
 
   try {
-    const { idea, customerSegment, coreProblem, jobToBeDone } = await req.json();
+    const { idea, candidateProfile, customerSegment, coreProblem, jobToBeDone, existingAlternatives } = await req.json();
 
-    console.log('Generating interview criteria for idea:', idea);
+    console.log('Generating Apollo search criteria for interview candidate profile:', candidateProfile);
 
-    // AI-powered criteria generation based on hypothesis canvas data
-    const criteria = generateInterviewCriteria(idea, customerSegment, coreProblem, jobToBeDone);
+    // AI-powered criteria generation based on validation masterclass methodology
+    const criteria = generateApolloSearchCriteria(candidateProfile, customerSegment, coreProblem, jobToBeDone, existingAlternatives);
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -38,136 +38,116 @@ serve(async (req) => {
   }
 });
 
-function generateInterviewCriteria(idea: string, customerSegment: any, coreProblem: any, jobToBeDone: any) {
-  // Extract key insights from hypothesis canvas
-  const segments = customerSegment?.content || [];
-  const problems = coreProblem?.content || [];
-  const jobs = jobToBeDone?.content || [];
-
-  // Generate Apollo API formatted criteria with rationale
+function generateApolloSearchCriteria(candidateProfile: any, customerSegment: any, coreProblem: any, jobToBeDone: any, existingAlternatives: any) {
+  // Following validation masterclass Module 2 methodology
+  // Transform interview candidate profile into Apollo API search parameters
+  
   const criteria = {
-    // Job titles based on customer segment analysis
-    person_titles: extractJobTitles(segments),
-    person_titles_rationale: "Based on customer segment analysis, these roles are most likely to experience the core problem and have decision-making authority.",
-
-    // Seniority levels
-    person_seniorities: extractSeniorities(segments, problems),
-    person_seniorities_rationale: "Target seniority levels that typically have budget authority and experience the pain points identified in core problem analysis.",
-
-    // Company size criteria
-    organization_num_employees_ranges: extractCompanySizes(segments, idea),
-    company_size_rationale: "Company sizes where the problem is most acute and our solution provides clear value proposition.",
-
-    // Industry focus
-    organization_industries: extractIndustries(segments, problems, idea),
-    industry_rationale: "Industries most likely to experience the identified problems and benefit from the proposed solution.",
-
-    // Geographic focus (if relevant)
-    person_locations: extractLocations(segments),
-    location_rationale: "Geographic regions where the target customer segment is concentrated and accessible for interviews.",
-
-    // Exclude certain criteria
-    exclude_current_companies: extractExclusions(idea),
-    exclusion_rationale: "Exclude direct competitors and companies where bias might affect interview quality."
+    // Job titles based on early adopter segment analysis
+    person_titles: extractJobTitlesFromProfile(candidateProfile),
+    
+    // Seniority levels based on customer segment and JTBD
+    person_seniorities: extractSenioritiesFromProfile(candidateProfile),
+    
+    // Company size criteria based on customer segment
+    organization_num_employees_ranges: extractCompanySizesFromProfile(candidateProfile),
+    
+    // Industry focus based on customer segment and existing alternatives
+    organization_industries: extractIndustriesFromProfile(candidateProfile, existingAlternatives),
+    
+    // Geographic focus based on early adopter segment
+    person_locations: extractLocationsFromProfile(candidateProfile)
   };
 
   return criteria;
 }
 
-function extractJobTitles(segments: any[]): string[] {
+function extractJobTitlesFromProfile(candidateProfile: any): string[] {
   const titles: string[] = [];
   
-  segments.forEach(segment => {
-    const text = segment.text?.toLowerCase() || '';
-    
-    // Founder/Leadership roles
-    if (text.includes('founder') || text.includes('ceo') || text.includes('entrepreneur')) {
-      titles.push('founder', 'ceo', 'co-founder', 'entrepreneur');
-    }
-    
-    // Product roles
-    if (text.includes('product') || text.includes('pm')) {
-      titles.push('product manager', 'head of product', 'chief product officer', 'product owner');
-    }
-    
-    // Engineering roles
-    if (text.includes('technical') || text.includes('engineer') || text.includes('developer')) {
-      titles.push('cto', 'head of engineering', 'engineering manager', 'lead developer');
-    }
-    
-    // Marketing roles
-    if (text.includes('marketing') || text.includes('growth')) {
-      titles.push('marketing manager', 'head of marketing', 'growth manager', 'digital marketing manager');
-    }
-    
-    // Sales roles
-    if (text.includes('sales') || text.includes('business development')) {
-      titles.push('sales manager', 'head of sales', 'business development manager', 'account executive');
-    }
-    
-    // Operations roles
-    if (text.includes('operations') || text.includes('ops')) {
-      titles.push('operations manager', 'head of operations', 'chief operating officer');
-    }
-  });
+  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
+  const customerSegmentText = candidateProfile.customerSegment?.toLowerCase() || '';
+  
+  // Founder/Leadership roles
+  if (earlyAdopterText.includes('founder') || earlyAdopterText.includes('ceo') || 
+      earlyAdopterText.includes('entrepreneur') || customerSegmentText.includes('founder')) {
+    titles.push('founder', 'ceo', 'co-founder', 'entrepreneur');
+  }
+  
+  // Technical roles
+  if (earlyAdopterText.includes('technical') || earlyAdopterText.includes('engineer') || 
+      earlyAdopterText.includes('developer') || earlyAdopterText.includes('cto')) {
+    titles.push('cto', 'head of engineering', 'engineering manager', 'lead developer', 'software engineer');
+  }
+  
+  // Product roles
+  if (earlyAdopterText.includes('product') || candidateProfile.hypothesizedJTBD?.toLowerCase().includes('product')) {
+    titles.push('product manager', 'head of product', 'chief product officer', 'product owner');
+  }
+  
+  // Business/Operations roles
+  if (earlyAdopterText.includes('business') || earlyAdopterText.includes('operations') ||
+      customerSegmentText.includes('owner') || customerSegmentText.includes('manager')) {
+    titles.push('business owner', 'operations manager', 'general manager', 'director');
+  }
+  
+  // Marketing/Growth roles if JTBD involves customer acquisition
+  if (candidateProfile.hypothesizedJTBD?.toLowerCase().includes('customer') ||
+      candidateProfile.hypothesizedJTBD?.toLowerCase().includes('growth') ||
+      candidateProfile.hypothesizedJTBD?.toLowerCase().includes('marketing')) {
+    titles.push('marketing manager', 'head of marketing', 'growth manager', 'head of growth');
+  }
   
   // Default titles if none detected
   if (titles.length === 0) {
-    titles.push('founder', 'ceo', 'product manager', 'head of product');
+    titles.push('founder', 'ceo', 'owner', 'manager');
   }
   
   return [...new Set(titles)]; // Remove duplicates
 }
 
-function extractSeniorities(segments: any[], problems: any[]): string[] {
+function extractSenioritiesFromProfile(candidateProfile: any): string[] {
   const seniorities: string[] = [];
   
-  // Check if targeting decision makers
-  const needsDecisionMakers = segments.some(s => 
-    s.text?.toLowerCase().includes('decision') || 
-    s.text?.toLowerCase().includes('budget') ||
-    s.text?.toLowerCase().includes('authority')
-  );
+  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
+  const jtbdText = candidateProfile.hypothesizedJTBD?.toLowerCase() || '';
   
-  if (needsDecisionMakers) {
-    seniorities.push('c_suite', 'vp', 'director');
+  // If targeting business growth or strategic decisions, need decision makers
+  if (jtbdText.includes('grow') || jtbdText.includes('business') || jtbdText.includes('strategy') ||
+      earlyAdopterText.includes('owner') || earlyAdopterText.includes('founder')) {
+    seniorities.push('c_suite', 'founder', 'vp', 'director');
   }
   
-  // Check if targeting individual contributors
-  const needsUsers = problems.some(p => 
-    p.text?.toLowerCase().includes('daily') || 
-    p.text?.toLowerCase().includes('workflow') ||
-    p.text?.toLowerCase().includes('productivity')
-  );
-  
-  if (needsUsers) {
-    seniorities.push('manager', 'senior', 'individual_contributor');
+  // If targeting operational efficiency or daily workflows, include managers and ICs
+  if (jtbdText.includes('efficiency') || jtbdText.includes('process') || jtbdText.includes('workflow') ||
+      candidateProfile.existingAlternative?.toLowerCase().includes('manual')) {
+    seniorities.push('manager', 'senior');
   }
   
-  // Default to decision makers if unclear
+  // Default to decision makers for early-stage validation
   if (seniorities.length === 0) {
-    seniorities.push('c_suite', 'vp', 'director', 'manager');
+    seniorities.push('c_suite', 'founder', 'vp', 'director', 'manager');
   }
   
   return seniorities;
 }
 
-function extractCompanySizes(segments: any[], idea: string): string[] {
+function extractCompanySizesFromProfile(candidateProfile: any): string[] {
   const sizes: string[] = [];
   
-  segments.forEach(segment => {
-    const text = segment.text?.toLowerCase() || '';
-    
-    if (text.includes('startup') || text.includes('early-stage')) {
-      sizes.push('1,50', '51,200');
-    } else if (text.includes('enterprise') || text.includes('large')) {
-      sizes.push('1000,5000', '5000,10000', '10000,');
-    } else if (text.includes('mid-market') || text.includes('medium')) {
-      sizes.push('200,1000');
-    }
-  });
+  const customerSegmentText = candidateProfile.customerSegment?.toLowerCase() || '';
+  const earlyAdopterText = candidateProfile.earlyAdopterSegment?.toLowerCase() || '';
   
-  // Default to startup/SMB focus
+  if (customerSegmentText.includes('startup') || customerSegmentText.includes('small') ||
+      earlyAdopterText.includes('early-stage') || earlyAdopterText.includes('startup')) {
+    sizes.push('1,10', '11,50', '51,200');
+  } else if (customerSegmentText.includes('enterprise') || customerSegmentText.includes('large')) {
+    sizes.push('1000,5000', '5000,10000', '10000,');
+  } else if (customerSegmentText.includes('mid') || customerSegmentText.includes('medium')) {
+    sizes.push('200,1000');
+  }
+  
+  // Default to small-medium companies for easier validation
   if (sizes.length === 0) {
     sizes.push('1,50', '51,200', '200,1000');
   }
@@ -175,67 +155,82 @@ function extractCompanySizes(segments: any[], idea: string): string[] {
   return sizes;
 }
 
-function extractIndustries(segments: any[], problems: any[], idea: string): string[] {
+function extractIndustriesFromProfile(candidateProfile: any, existingAlternatives: any): string[] {
   const industries: string[] = [];
   
   const allText = [
-    ...segments.map(s => s.text || ''),
-    ...problems.map(p => p.text || ''),
-    idea
+    candidateProfile.customerSegment || '',
+    candidateProfile.earlyAdopterSegment || '',
+    candidateProfile.hypothesizedJTBD || '',
+    candidateProfile.existingAlternative || ''
   ].join(' ').toLowerCase();
   
-  // Technology
-  if (allText.includes('software') || allText.includes('tech') || allText.includes('app')) {
+  // Add industries from existing alternatives analysis
+  const alternatives = existingAlternatives?.content || [];
+  const alternativeText = alternatives.map((alt: any) => alt.text || '').join(' ').toLowerCase();
+  
+  // Technology/Software
+  if (allText.includes('software') || allText.includes('tech') || allText.includes('app') ||
+      allText.includes('digital') || alternativeText.includes('tool')) {
     industries.push('Computer Software', 'Information Technology & Services');
   }
   
-  // SaaS/B2B
-  if (allText.includes('saas') || allText.includes('b2b') || allText.includes('business')) {
-    industries.push('Computer Software', 'Information Technology & Services', 'Management Consulting');
-  }
-  
-  // E-commerce
-  if (allText.includes('ecommerce') || allText.includes('retail') || allText.includes('shopping')) {
+  // E-commerce/Retail
+  if (allText.includes('ecommerce') || allText.includes('retail') || allText.includes('shop') ||
+      allText.includes('store') || allText.includes('commerce')) {
     industries.push('Retail', 'E-commerce', 'Consumer Goods');
   }
   
-  // Keep broad if no specific industry detected
+  // Professional Services
+  if (allText.includes('consulting') || allText.includes('agency') || allText.includes('service') ||
+      allText.includes('professional')) {
+    industries.push('Management Consulting', 'Professional Services');
+  }
+  
+  // Healthcare
+  if (allText.includes('health') || allText.includes('medical') || allText.includes('clinic')) {
+    industries.push('Healthcare', 'Medical Practice');
+  }
+  
+  // SaaS/B2B (common for startup tools)
+  if (allText.includes('business') || allText.includes('b2b') || allText.includes('saas') ||
+      candidateProfile.hypothesizedJTBD?.toLowerCase().includes('grow')) {
+    industries.push('Computer Software', 'Information Technology & Services', 'Internet');
+  }
+  
+  // Default to tech/software for most startup validation
   if (industries.length === 0) {
     industries.push('Computer Software', 'Information Technology & Services', 'Internet');
   }
   
-  return industries;
+  return [...new Set(industries)]; // Remove duplicates
 }
 
-function extractLocations(segments: any[]): string[] {
+function extractLocationsFromProfile(candidateProfile: any): string[] {
   const locations: string[] = [];
   
-  segments.forEach(segment => {
-    const text = segment.text?.toLowerCase() || '';
-    
-    if (text.includes('us') || text.includes('america') || text.includes('united states')) {
-      locations.push('United States');
-    }
-    if (text.includes('europe') || text.includes('eu')) {
-      locations.push('United Kingdom', 'Germany', 'France');
-    }
-    if (text.includes('silicon valley') || text.includes('bay area')) {
-      locations.push('San Francisco, CA', 'Palo Alto, CA');
-    }
-    if (text.includes('new york') || text.includes('nyc')) {
-      locations.push('New York, NY');
-    }
-  });
+  const allText = [
+    candidateProfile.customerSegment || '',
+    candidateProfile.earlyAdopterSegment || ''
+  ].join(' ').toLowerCase();
   
-  // Default to major startup hubs
+  // Specific geographic mentions
+  if (allText.includes('urban') || allText.includes('city') || allText.includes('metropolitan')) {
+    locations.push('United States', 'New York, NY', 'San Francisco, CA', 'Los Angeles, CA');
+  }
+  
+  if (allText.includes('us') || allText.includes('america') || allText.includes('united states')) {
+    locations.push('United States');
+  }
+  
+  if (allText.includes('silicon valley') || allText.includes('bay area') || allText.includes('tech hub')) {
+    locations.push('San Francisco, CA', 'Palo Alto, CA', 'Mountain View, CA');
+  }
+  
+  // Default to major business centers for easier interview access
   if (locations.length === 0) {
-    locations.push('United States', 'San Francisco, CA', 'New York, NY', 'Austin, TX');
+    locations.push('United States', 'San Francisco, CA', 'New York, NY', 'Austin, TX', 'Boston, MA');
   }
   
   return locations;
-}
-
-function extractExclusions(idea: string): string[] {
-  // Basic exclusions - could be enhanced based on idea analysis
-  return [];
 }
