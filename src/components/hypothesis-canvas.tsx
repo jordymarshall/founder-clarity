@@ -404,9 +404,6 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                         <h3 className="text-lg font-medium">
                           {index + 1}. {card.title}
                         </h3>
-                        {card.aiGenerated && (
-                          <Sparkles className="h-4 w-4 text-primary" />
-                        )}
                         {card.needsUpdate && (
                           <RefreshCw className="h-4 w-4 text-yellow-500 animate-pulse" />
                         )}
@@ -462,8 +459,8 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                                     />
                                   ) : (
                                     <p 
-                                      className="text-sm leading-relaxed"
-                                      onDoubleClick={(e) => {
+                                      className="text-sm leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
+                                      onClick={(e) => {
                                         e.stopPropagation();
                                         setEditingBullet({ cardId: card.id, bulletIndex: pointIndex });
                                       }}
@@ -520,7 +517,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                                 ) : (
                                   <p 
                                     className="text-xs text-muted-foreground leading-relaxed cursor-pointer hover:text-foreground transition-colors"
-                                    onDoubleClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
+                                    onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
                                   >
                                     {bulletPoint.rationale}
                                   </p>
@@ -533,7 +530,7 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                     })}
 
                     {/* Add Point Button */}
-                    <div className="pt-2">
+                    <div className="pt-2 flex gap-2">
                       <Button 
                         onClick={() => handleAddBulletPoint(card.id)}
                         size="sm" 
@@ -542,6 +539,15 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Add Point
+                      </Button>
+                      <Button 
+                        onClick={() => handleAddBulletPoint(card.id)}
+                        size="sm" 
+                        variant="outline"
+                        className="h-7 text-xs"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Generate Point
                       </Button>
                     </div>
 
