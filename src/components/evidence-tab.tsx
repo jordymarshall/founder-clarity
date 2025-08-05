@@ -244,9 +244,15 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
       setCurrentPage(page);
       setTotalEntries(data.data.total_entries);
       toast.success(`Found ${data.data.people.length} candidates`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error searching candidates:', error);
-      toast.error('Failed to search candidates - check Apollo API key');
+      
+      // Handle Apollo free plan limitation
+      if (error.message?.includes("Apollo's free plan doesn't support people search")) {
+        toast.error("Apollo free plan doesn't support search. Please upgrade to Apollo's paid plan for candidate search.");
+      } else {
+        toast.error('Failed to search candidates - check Apollo API key');
+      }
     } finally {
       setIsSearching(false);
     }

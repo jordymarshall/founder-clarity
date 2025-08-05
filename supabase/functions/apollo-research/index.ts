@@ -30,18 +30,20 @@ serve(async (req) => {
         requestBody = { email: query };
         break;
       case 'people_search':
-        // For free plan, try the basic people search endpoint instead of mixed search
-        endpoint = 'https://api.apollo.io/v1/people/search';
-        requestBody = {
-          person_titles: query.person_titles || [],
-          person_seniorities: query.person_seniorities || [],
-          organization_num_employees_ranges: query.organization_num_employees_ranges || [],
-          organization_industries: query.organization_industries || [],
-          person_locations: query.person_locations || [],
-          page: query.page || 1,
-          per_page: query.per_page || 5
-        };
-        break;
+        // Apollo's free plan does not support ANY search endpoints
+        // All search endpoints (mixed_people/search, people/search) require paid credits
+        // Free plan only supports enrichment endpoints like people/match
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: "Apollo's free plan doesn't support people search. Please upgrade to a paid Apollo plan to search for candidates, or manually find candidate emails and use the enrichment feature instead.",
+          upgrade_info: {
+            message: "To search for candidates, you need Apollo's paid plan",
+            free_alternative: "You can manually find candidate emails (LinkedIn, company websites) and use our enrichment feature to get their details"
+          }
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       case 'prospector':
         endpoint = 'https://api.apollo.io/v1/mixed_people/search';
         requestBody = {
