@@ -4,8 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card } from '@/components/ui/card';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Info, Plus, X } from 'lucide-react';
+import { ArrowLeft, Sparkles, RefreshCw, ChevronRight, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BulletPoint {
@@ -43,25 +42,19 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [editingBullet, setEditingBullet] = useState<{ cardId: string; bulletIndex: number } | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [expandedCards, setExpandedCards] = useState<string[]>([]);
+  const [expandedBullets, setExpandedBullets] = useState<string[]>([]);
   const [refinementInputs, setRefinementInputs] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Rationale popover component
-  const RationalePopover = ({ rationale }: { rationale: string }) => (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-4 w-4 p-0 ml-2 opacity-60 hover:opacity-100">
-          <Info className="h-3 w-3" />
-        </Button>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80 bg-popover border border-border z-50" side="top" align="start">
-        <div className="space-y-2">
-          <p className="font-medium text-sm">AI Rationale</p>
-          <p className="text-xs text-muted-foreground">{rationale}</p>
-        </div>
-      </HoverCardContent>
-    </HoverCard>
-  );
+  // Toggle bullet point expansion
+  const toggleBullet = (cardId: string, bulletIndex: number) => {
+    const bulletId = `${cardId}-${bulletIndex}`;
+    setExpandedBullets(prev => 
+      prev.includes(bulletId) 
+        ? prev.filter(id => id !== bulletId)
+        : [...prev, bulletId]
+    );
+  };
 
   // Mock AI analysis function
   const mockAnalyzeIdea = async (ideaText: string): Promise<CanvasCard[]> => {
@@ -433,53 +426,111 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
                 <CollapsibleContent className="px-6 pb-6">
                   <div className="space-y-4 pt-4 border-t">
                     {/* Bullet Points */}
-                    {card.content.map((bulletPoint, pointIndex) => (
-                      <div key={pointIndex} className="space-y-2">
-                        <div className="flex items-start gap-2 group">
-                          <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
-                            {pointIndex + 1}
-                          </span>
-                          <div className="flex-1">
-                            {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
-                              <Textarea
-                                value={bulletPoint.text}
-                                onChange={(e) => handleBulletEdit(card.id, pointIndex, 'text', e.target.value)}
-                                onBlur={() => setEditingBullet(null)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    setEditingBullet(null);
-                                  }
-                                  if (e.key === 'Escape') {
-                                    setEditingBullet(null);
-                                  }
-                                }}
-                                className="min-h-[60px] text-sm"
-                                autoFocus
-                              />
-                            ) : (
-                              <p 
-                                className="text-sm leading-relaxed cursor-pointer hover:bg-muted/30 rounded p-1 -m-1 transition-colors"
-                                onClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
-                              >
-                                {bulletPoint.text}
-                              </p>
-                            )}
-                          </div>
-                          <RationalePopover rationale={bulletPoint.rationale} />
-                          {card.content.length > 2 && (
-                            <Button
-                              onClick={() => handleRemoveBulletPoint(card.id, pointIndex)}
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
+                    {card.content.map((bulletPoint, pointIndex) => {
+                      const bulletId = `${card.id}-${pointIndex}`;
+                      const isBulletExpanded = expandedBullets.includes(bulletId);
+                      
+                      return (
+                        <div key={pointIndex} className="space-y-2">
+                          <Collapsible
+                            open={isBulletExpanded}
+                            onOpenChange={() => toggleBullet(card.id, pointIndex)}
+                          >
+                            <CollapsibleTrigger asChild>
+                              <div className="flex items-start gap-2 group cursor-pointer hover:bg-muted/30 rounded p-2 -m-2 transition-colors">
+                                <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary text-xs font-medium rounded-full flex items-center justify-center mt-0.5">
+                                  {pointIndex + 1}
+                                </span>
+                                <div className="flex-1">
+                                  {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                                    <Textarea
+                                      value={bulletPoint.text}
+                                      onChange={(e) => handleBulletEdit(card.id, pointIndex, 'text', e.target.value)}
+                                      onBlur={() => setEditingBullet(null)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault();
+                                          setEditingBullet(null);
+                                        }
+                                        if (e.key === 'Escape') {
+                                          setEditingBullet(null);
+                                        }
+                                      }}
+                                      className="min-h-[60px] text-sm"
+                                      autoFocus
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  ) : (
+                                    <p 
+                                      className="text-sm leading-relaxed"
+                                      onDoubleClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingBullet({ cardId: card.id, bulletIndex: pointIndex });
+                                      }}
+                                    >
+                                      {bulletPoint.text}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <ChevronRight 
+                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                      isBulletExpanded ? 'rotate-90' : ''
+                                    }`}
+                                  />
+                                  {card.content.length > 2 && (
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveBulletPoint(card.id, pointIndex);
+                                      }}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </CollapsibleTrigger>
+                            
+                            <CollapsibleContent className="ml-8 pb-2">
+                              <div className="bg-muted/30 rounded-lg p-3 border-l-2 border-primary/20">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                                  AI Rationale
+                                </p>
+                                {editingBullet?.cardId === card.id && editingBullet?.bulletIndex === pointIndex ? (
+                                  <Textarea
+                                    value={bulletPoint.rationale}
+                                    onChange={(e) => handleBulletEdit(card.id, pointIndex, 'rationale', e.target.value)}
+                                    onBlur={() => setEditingBullet(null)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        setEditingBullet(null);
+                                      }
+                                      if (e.key === 'Escape') {
+                                        setEditingBullet(null);
+                                      }
+                                    }}
+                                    className="min-h-[40px] text-xs bg-background"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <p 
+                                    className="text-xs text-muted-foreground leading-relaxed cursor-pointer hover:text-foreground transition-colors"
+                                    onDoubleClick={() => setEditingBullet({ cardId: card.id, bulletIndex: pointIndex })}
+                                  >
+                                    {bulletPoint.rationale}
+                                  </p>
+                                )}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Add Point Button */}
                     <div className="pt-2">
