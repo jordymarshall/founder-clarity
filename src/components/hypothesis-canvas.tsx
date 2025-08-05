@@ -30,8 +30,9 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
   const [refinementInput, setRefinementInput] = useState('');
-  const [cards, setCards] = useState<CanvasCard[]>(persistedCards);
+  const [cards, setCards] = useState<CanvasCard[]>([]);
   const [editingCard, setEditingCard] = useState<string | null>(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Mock AI analysis function
@@ -168,13 +169,15 @@ export function HypothesisCanvas({ idea, isInitialized = false, onInitialized, p
   }, [showCanvas]);
 
   useEffect(() => {
-    if (idea && !isInitialized && cards.length === 0) {
-      handleGenerateCanvas(idea);
-    } else if (isInitialized && persistedCards.length > 0 && cards.length === 0) {
+    if (isInitialized && persistedCards.length > 0 && !hasGenerated) {
       setShowCanvas(true);
       setCards(persistedCards);
+      setHasGenerated(true);
+    } else if (idea && !isInitialized && !hasGenerated) {
+      setHasGenerated(true);
+      handleGenerateCanvas(idea);
     }
-  }, [idea, isInitialized, handleGenerateCanvas]);
+  }, [idea, isInitialized, persistedCards.length, hasGenerated, handleGenerateCanvas]);
 
   // Render initial state (input form)
   if (!showCanvas) {
