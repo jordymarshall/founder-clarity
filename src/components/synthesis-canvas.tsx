@@ -9,12 +9,14 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
+  DragOverEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   useSortable,
@@ -32,7 +34,6 @@ interface InsightBlock {
   category: 'push' | 'pull' | 'inertia' | 'friction' | 'pattern';
   title: string;
   content: string;
-  position: { x: number; y: number };
 }
 
 interface SynthesisCanvasProps {
@@ -114,7 +115,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
       )}
     >
       <Card className={cn(
-        "relative transition-all duration-200 hover:shadow-lg cursor-pointer",
+        "relative transition-all duration-200 hover:shadow-md cursor-pointer mb-3",
         config.color,
         isDragging && "shadow-xl"
       )}>
@@ -134,7 +135,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Block title..."
+                placeholder="Insight title..."
                 className="text-sm font-medium"
                 autoFocus
               />
@@ -149,12 +150,9 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
             </div>
           ) : (
             <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-sm font-medium">
-                  {block.title || config.label}
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">{config.description}</p>
-              </div>
+              <CardTitle className="text-sm font-medium">
+                {block.title || "New Insight"}
+              </CardTitle>
               <Button
                 size="sm"
                 variant="ghost"
@@ -173,10 +171,10 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Add your insights here..."
-              className="min-h-[80px] text-sm resize-none"
+              className="min-h-[60px] text-sm resize-none"
             />
           ) : (
-            <div className="min-h-[80px] text-sm leading-relaxed">
+            <div className="min-h-[60px] text-sm leading-relaxed">
               {block.content || "Click to add insights..."}
             </div>
           )}
@@ -186,45 +184,75 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
   );
 }
 
-export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
-  const [blocks, setBlocks] = useState<InsightBlock[]>([
-    {
-      id: 'push-1',
-      category: 'push',
-      title: '',
-      content: '',
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: 'pull-1',
-      category: 'pull',
-      title: '',
-      content: '',
-      position: { x: 1, y: 0 },
-    },
-    {
-      id: 'inertia-1',
-      category: 'inertia',
-      title: '',
-      content: '',
-      position: { x: 0, y: 1 },
-    },
-    {
-      id: 'friction-1',
-      category: 'friction',
-      title: '',
-      content: '',
-      position: { x: 1, y: 1 },
-    },
-    {
-      id: 'pattern-1',
-      category: 'pattern',
-      title: '',
-      content: '',
-      position: { x: 0, y: 2 },
-    },
-  ]);
+function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCancel, editingId }: {
+  category: keyof typeof categoryConfig;
+  blocks: InsightBlock[];
+  onAddBlock: (category: keyof typeof categoryConfig) => void;
+  onEdit: (id: string) => void;
+  onSave: (id: string, title: string, content: string) => void;
+  onCancel: () => void;
+  editingId: string | null;
+}) {
+  const config = categoryConfig[category];
+  const categoryBlocks = blocks.filter(block => block.category === category);
   
+  const { setNodeRef, isOver } = useDroppable({
+    id: category,
+  });
+
+  return (
+    <Card 
+      ref={setNodeRef}
+      className={cn(
+        "h-full min-h-[300px] transition-all duration-200",
+        isOver && "ring-2 ring-primary ring-offset-2"
+      )}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold">{config.label}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAddBlock(category)}
+            className="h-7 w-7 p-0"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        <SortableContext items={categoryBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {categoryBlocks.length === 0 ? (
+              <div className="min-h-[100px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">Drop insights here or click + to add</p>
+              </div>
+            ) : (
+              categoryBlocks.map((block) => (
+                <SortableInsightBlock
+                  key={block.id}
+                  block={block}
+                  onEdit={onEdit}
+                  onSave={onSave}
+                  onCancel={onCancel}
+                  editingId={editingId}
+                />
+              ))
+            )}
+          </div>
+        </SortableContext>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
+  const [blocks, setBlocks] = useState<InsightBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -239,20 +267,51 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
     setActiveId(event.active.id as string);
   }, []);
 
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+    
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    // Find the active block
+    const activeBlock = blocks.find(block => block.id === activeId);
+    if (!activeBlock) return;
+    
+    // Check if we're dropping on a category container
+    if (Object.keys(categoryConfig).includes(overId)) {
+      const newCategory = overId as keyof typeof categoryConfig;
+      if (activeBlock.category !== newCategory) {
+        setBlocks(prev => 
+          prev.map(block => 
+            block.id === activeId 
+              ? { ...block, category: newCategory }
+              : block
+          )
+        );
+      }
+    }
+  }, [blocks]);
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      setBlocks((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over?.id);
-
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const activeBlock = blocks.find(block => block.id === active.id);
+      const overBlock = blocks.find(block => block.id === over?.id);
+      
+      if (activeBlock && overBlock && activeBlock.category === overBlock.category) {
+        setBlocks((items) => {
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          const newIndex = items.findIndex((item) => item.id === over?.id);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
     }
 
     setActiveId(null);
-  }, []);
+  }, [blocks]);
 
   const handleEdit = useCallback((id: string) => {
     setEditingId(id);
@@ -277,10 +336,9 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
       category,
       title: '',
       content: '',
-      position: { x: 0, y: blocks.length },
     };
     setBlocks((prev) => [...prev, newBlock]);
-  }, [blocks.length]);
+  }, []);
 
   const activeBlock = blocks.find((block) => block.id === activeId);
 
@@ -289,7 +347,7 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
       <div className="text-center space-y-2">
         <h3 className="text-lg font-semibold">Customer Forces Canvas</h3>
         <p className="text-sm text-muted-foreground">
-          Drag blocks to reorganize • Click to edit • Visual patterns emerge naturally
+          Drag insights between categories • Drop zones highlight when active • Click + to add new insights
         </p>
       </div>
 
@@ -297,22 +355,63 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={blocks.map(b => b.id)} strategy={rectSortingStrategy}>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {blocks.map((block) => (
-              <SortableInsightBlock
-                key={block.id}
-                block={block}
-                onEdit={handleEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                editingId={editingId}
-              />
-            ))}
+        <div className="space-y-6">
+          {/* 2x2 Grid for Push, Pull, Inertia, Friction */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CategoryContainer
+              category="push"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
+            <CategoryContainer
+              category="pull"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
+            <CategoryContainer
+              category="inertia"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
+            <CategoryContainer
+              category="friction"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
           </div>
-        </SortableContext>
+
+          {/* Full-width Patterns section */}
+          <div className="w-full">
+            <CategoryContainer
+              category="pattern"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
+          </div>
+        </div>
 
         <DragOverlay>
           {activeBlock ? (
@@ -322,11 +421,11 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
             )}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {activeBlock.title || categoryConfig[activeBlock.category].label}
+                  {activeBlock.title || "New Insight"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="min-h-[80px] text-sm">
+                <div className="min-h-[60px] text-sm">
                   {activeBlock.content || "Click to add insights..."}
                 </div>
               </CardContent>
@@ -334,21 +433,6 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
           ) : null}
         </DragOverlay>
       </DndContext>
-
-      <div className="flex flex-wrap gap-2 justify-center pt-4 border-t">
-        {Object.entries(categoryConfig).map(([key, config]) => (
-          <Button
-            key={key}
-            variant="outline"
-            size="sm"
-            onClick={() => addNewBlock(key as keyof typeof categoryConfig)}
-            className="text-xs"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add {config.label}
-          </Button>
-        ))}
-      </div>
     </div>
   );
 }
