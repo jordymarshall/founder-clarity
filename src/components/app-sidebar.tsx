@@ -71,7 +71,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${collapsed ? "w-14" : "w-64"} [&>div]:border-r-0`}
+      className={`${collapsed ? "w-14" : "w-64"} [&>div]:!border-r-0`}
       collapsible="icon"
     >
       <SidebarHeader className="">
