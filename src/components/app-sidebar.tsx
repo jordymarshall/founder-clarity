@@ -8,7 +8,8 @@ import {
   MessageSquare, 
   Settings,
   ChevronRight,
-  Plus
+  Plus,
+  Glasses
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -80,7 +81,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-3 py-2">
           <div className="w-6 h-6 bg-sidebar-primary rounded flex items-center justify-center">
-            <Target className="w-4 h-4 text-sidebar-primary-foreground" />
+            <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
             <span className="font-semibold text-sidebar-foreground">StartupDetective</span>
