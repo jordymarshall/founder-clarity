@@ -70,7 +70,7 @@ const categoryConfig = {
   },
   'job-to-be-done': {
     label: 'Job to be Done',
-    color: 'bg-[#C5EBC3] border-[#A8D8A6] text-green-800',
+    color: 'bg-green-50 border-green-200 text-green-900',
     description: 'What job is the customer hiring your product to do?',
     parent: true,
   },
