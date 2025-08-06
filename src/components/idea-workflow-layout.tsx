@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InterviewScriptScreen } from '@/components/interview-script-screen';
 import { EvidenceTab } from '@/components/evidence-tab';
 import { HypothesisCanvas } from '@/components/hypothesis-canvas';
+import { SynthesisCanvas } from '@/components/synthesis-canvas';
 import { ArrowLeft } from 'lucide-react';
 
 interface IdeaWorkflowLayoutProps {
@@ -171,50 +172,13 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
 
           {/* Module 4: Synthesizing Truth */}
           <TabsContent value="module4" className="space-y-6">
-            <div className="max-w-3xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-semibold">Module 4: Synthesizing Truth</h2>
                 <p className="text-muted-foreground">Turn interview data into actionable insights</p>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Customer Forces Canvas</h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Push Forces:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
-                        [Switching triggers & problems]
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Pull Forces:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
-                        [Desired outcomes]
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Inertia:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
-                        [Resistance to change]
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Friction:</label>
-                      <div className="min-h-[60px] bg-muted rounded p-3 text-sm">
-                        [Pain points with current solution]
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-3">Pattern Recognition</h3>
-                  <div className="min-h-[100px] bg-muted rounded p-3 text-sm">
-                    [What common patterns emerge across interviews?]
-                  </div>
-                </div>
-              </div>
+              <SynthesisCanvas />
             </div>
           </TabsContent>
 
