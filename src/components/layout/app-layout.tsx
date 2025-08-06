@@ -29,7 +29,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-sidebar">
-        <AppSidebar />
+        <AppSidebar onSearchClick={() => setCommandMenuOpen(true)} />
         
         <SidebarInset className="flex-1 pl-2 pr-4 py-4">
           <div className="bg-background rounded-lg shadow-sm border min-h-full flex flex-col overflow-hidden">
@@ -37,22 +37,24 @@ export function AppLayout({ children }: AppLayoutProps) {
             <header className="h-12 flex items-center border-b border-border px-4 bg-background sticky top-0 z-30">
               <SidebarTrigger className="mr-2" />
               <div className="flex-1" />
-              <Button
-                onClick={() => setCommandMenuOpen(true)}
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground mr-2"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={() => setCommandMenuOpen(true)}
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
-                ⌘K
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  onClick={() => setCommandMenuOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => setCommandMenuOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground bg-muted/30 px-2"
+                >
+                  ⌘K
+                </Button>
+              </div>
             </header>
 
             {/* Main Content */}

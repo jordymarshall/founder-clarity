@@ -34,8 +34,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 const mainItems = [
   { title: "Ideas Hub", url: "/", icon: Home },
-  { title: "Search", url: "/search", icon: Search },
 ]
+
+const searchItem = { title: "Search", icon: Search }
 
 const workspaceItems = [
   { 
@@ -53,7 +54,7 @@ const workspaceItems = [
 ]
 
 
-export function AppSidebar() {
+export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
   const { state, isMobile } = useSidebar()
   const collapsed = state === "collapsed"
   const location = useLocation()
@@ -96,18 +97,31 @@ export function AppSidebar() {
                   isActive={isActive(item.url)}
                   className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                 >
-                  <NavLink to={item.url} className="flex items-center gap-3 justify-between">
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </div>
-                    {!collapsed && item.title === "Search" && (
-                      <span className="text-xs text-sidebar-muted bg-sidebar-accent px-1.5 py-0.5 rounded">⌘K</span>
-                    )}
+                  <NavLink to={item.url} className="flex items-center gap-3">
+                    <item.icon className="w-4 h-4" />
+                    {!collapsed && <span>{item.title}</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            
+            {/* Search Item - Special handling */}
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                onClick={onSearchClick}
+                className="cursor-pointer"
+              >
+                <div className="flex items-center gap-3 justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <searchItem.icon className="w-4 h-4" />
+                    {!collapsed && <span>{searchItem.title}</span>}
+                  </div>
+                  {!collapsed && (
+                    <span className="text-xs text-sidebar-muted bg-sidebar-accent px-1.5 py-0.5 rounded">⌘K</span>
+                  )}
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
