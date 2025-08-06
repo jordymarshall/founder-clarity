@@ -74,7 +74,7 @@ export function AppSidebar() {
       className={collapsed ? "w-14" : "w-64"}
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader className="">
         <div className="flex items-center gap-2 px-3 py-2">
           <div className="w-6 h-6 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
@@ -187,7 +187,7 @@ export function AppSidebar() {
 
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
