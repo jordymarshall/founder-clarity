@@ -50,7 +50,7 @@ const categoryConfig = {
   },
   alternatives: {
     label: 'Existing Alternatives',
-    color: 'bg-red-100/50 border-red-300/50 text-red-800',
+    color: 'bg-gray-50 border-gray-200 text-gray-700',
     description: 'Current solutions people use',
     parent: false,
     parentCategory: 'problem',
@@ -63,7 +63,7 @@ const categoryConfig = {
   },
   'early-adopters': {
     label: 'Early Adopter Segment',
-    color: 'bg-blue-100/50 border-blue-300/50 text-blue-800',
+    color: 'bg-gray-50 border-gray-200 text-gray-700',
     description: 'First customers willing to try your solution',
     parent: false,
     parentCategory: 'segments',
