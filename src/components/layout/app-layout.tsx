@@ -31,10 +31,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-sidebar">
         <AppSidebar />
         
-        <SidebarInset className="flex-1 p-4">
-          <div className="bg-background rounded-lg shadow-sm border min-h-full flex flex-col">
+        <SidebarInset className="flex-1 pl-2 pr-4 py-4">
+          <div className="bg-background rounded-lg shadow-sm border min-h-full flex flex-col overflow-hidden">
             {/* Top Header */}
-            <header className="h-12 flex items-center border-b border-border px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-30 rounded-t-lg">
+            <header className="h-12 flex items-center border-b border-border px-4 bg-background sticky top-0 z-30">
               <SidebarTrigger className="mr-2" />
               <div className="flex-1" />
               <Button
