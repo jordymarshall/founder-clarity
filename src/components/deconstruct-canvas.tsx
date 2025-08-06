@@ -248,11 +248,11 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
       ref={setNodeRef}
       className={cn(
         "h-full transition-all duration-200",
-        isSubsection ? "min-h-[200px] mt-4" : "min-h-[300px]",
+        isSubsection ? "min-h-[150px] border-dashed" : "min-h-[300px]",
         isOver && "ring-2 ring-primary ring-offset-2"
       )}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className={cn("pb-3", isSubsection && "pb-2")}>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className={cn(
@@ -261,24 +261,35 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
             )}>
               {config.label}
             </CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
+            <p className={cn(
+              "text-muted-foreground mt-1",
+              isSubsection ? "text-xs" : "text-xs"
+            )}>
+              {config.description}
+            </p>
           </div>
           <Button
             size="sm"
             variant="outline"
             onClick={() => onAddBlock(category)}
-            className="h-7 w-7 p-0"
+            className={cn(
+              "p-0",
+              isSubsection ? "h-6 w-6" : "h-7 w-7"
+            )}
           >
-            <Plus className="h-3 w-3" />
+            <Plus className={cn(isSubsection ? "h-2.5 w-2.5" : "h-3 w-3")} />
           </Button>
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0">
+      <CardContent className={cn("pt-0", isSubsection && "pb-3")}>
         <SortableContext items={categoryBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             {categoryBlocks.length === 0 ? (
-              <div className="min-h-[100px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center">
+              <div className={cn(
+                "border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center",
+                isSubsection ? "min-h-[60px]" : "min-h-[100px]"
+              )}>
                 <p className="text-sm text-muted-foreground">Drop insights here or click + to add</p>
               </div>
             ) : (
@@ -295,6 +306,89 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
             )}
           </div>
         </SortableContext>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBlock, onEdit, onSave, onCancel, editingId }: {
+  category: keyof typeof categoryConfig;
+  subsectionCategory: keyof typeof categoryConfig;
+  blocks: InsightBlock[];
+  onAddBlock: (category: keyof typeof categoryConfig) => void;
+  onEdit: (id: string) => void;
+  onSave: (id: string, title: string, content: string) => void;
+  onCancel: () => void;
+  editingId: string | null;
+}) {
+  const config = categoryConfig[category];
+  const categoryBlocks = blocks.filter(block => block.category === category);
+  
+  const { setNodeRef, isOver } = useDroppable({
+    id: category,
+  });
+
+  return (
+    <Card 
+      ref={setNodeRef}
+      className={cn(
+        "h-full min-h-[400px] transition-all duration-200",
+        isOver && "ring-2 ring-primary ring-offset-2"
+      )}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold">{config.label}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAddBlock(category)}
+            className="h-7 w-7 p-0"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0 space-y-4">
+        {/* Main category content */}
+        <SortableContext items={categoryBlocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {categoryBlocks.length === 0 ? (
+              <div className="min-h-[120px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">Drop insights here or click + to add</p>
+              </div>
+            ) : (
+              categoryBlocks.map((block) => (
+                <SortableInsightBlock
+                  key={block.id}
+                  block={block}
+                  onEdit={onEdit}
+                  onSave={onSave}
+                  onCancel={onCancel}
+                  editingId={editingId}
+                />
+              ))
+            )}
+          </div>
+        </SortableContext>
+
+        {/* Subsection */}
+        <div className="pt-2">
+          <CategoryContainer
+            category={subsectionCategory}
+            blocks={blocks}
+            onAddBlock={onAddBlock}
+            onEdit={onEdit}
+            onSave={onSave}
+            onCancel={onCancel}
+            editingId={editingId}
+            isSubsection={true}
+          />
+        </div>
       </CardContent>
     </Card>
   );
@@ -410,57 +504,31 @@ export function DeconstructCanvas({ className, idea }: DeconstructCanvasProps) {
         onDragEnd={handleDragEnd}
       >
         <div className="space-y-6">
-          {/* Row 1: Problem + Customer Segments (2x2 with subsections) */}
+          {/* Row 1: Problem + Customer Segments (with nested subsections) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Problem Column with Alternatives subsection */}
-            <div className="space-y-0">
-              <CategoryContainer
-                category="problem"
-                blocks={blocks}
-                onAddBlock={addNewBlock}
-                onEdit={handleEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                editingId={editingId}
-              />
-              <div className="px-4 pb-4 -mt-4">
-                <CategoryContainer
-                  category="alternatives"
-                  blocks={blocks}
-                  onAddBlock={addNewBlock}
-                  onEdit={handleEdit}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  editingId={editingId}
-                  isSubsection={true}
-                />
-              </div>
-            </div>
+            {/* Problem with nested Alternatives */}
+            <ParentCategoryContainer
+              category="problem"
+              subsectionCategory="alternatives"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
 
-            {/* Customer Segments Column with Early Adopters subsection */}
-            <div className="space-y-0">
-              <CategoryContainer
-                category="segments"
-                blocks={blocks}
-                onAddBlock={addNewBlock}
-                onEdit={handleEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                editingId={editingId}
-              />
-              <div className="px-4 pb-4 -mt-4">
-                <CategoryContainer
-                  category="early-adopters"
-                  blocks={blocks}
-                  onAddBlock={addNewBlock}
-                  onEdit={handleEdit}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  editingId={editingId}
-                  isSubsection={true}
-                />
-              </div>
-            </div>
+            {/* Customer Segments with nested Early Adopters */}
+            <ParentCategoryContainer
+              category="segments"
+              subsectionCategory="early-adopters"
+              blocks={blocks}
+              onAddBlock={addNewBlock}
+              onEdit={handleEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              editingId={editingId}
+            />
           </div>
 
           {/* Row 2: Full-width Job to be Done section */}
