@@ -75,8 +75,8 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
       className={`${collapsed ? "w-14" : "w-64"} sidebar-borderless`}
       collapsible="icon"
     >
-      <SidebarHeader className="h-12 flex items-center">
-        <div className="flex items-center gap-2 px-3">
+      <SidebarHeader className="">
+        <div className="flex items-center gap-2 px-3 py-2 mt-2">
           <div className="w-6 h-6 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
