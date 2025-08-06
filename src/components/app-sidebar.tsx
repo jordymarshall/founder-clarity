@@ -76,7 +76,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
       collapsible="icon"
     >
       <SidebarHeader className="">
-        <div className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-2 px-3'} py-2 mt-2`}>
+        <div className={`flex items-center gap-2 px-3 py-2 mt-2 ${collapsed ? 'justify-center' : ''}`}>
           <div className="w-7 h-7 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
@@ -92,12 +92,12 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
           <SidebarMenu>
             {mainItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                 <SidebarMenuButton 
+                <SidebarMenuButton 
                   asChild
                   isActive={isActive(item.url)}
                   className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                 >
-                  <NavLink to={item.url} className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+                  <NavLink to={item.url} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
                     <item.icon className="w-4 h-4" />
                     {!collapsed && <span>{item.title}</span>}
                   </NavLink>
@@ -111,8 +111,8 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                 onClick={onSearchClick}
                 className="cursor-pointer"
               >
-                <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 justify-between'} w-full`}>
-                  <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+                <div className={`flex items-center gap-3 justify-between w-full ${collapsed ? 'justify-center' : ''}`}>
+                  <div className="flex items-center gap-3">
                     <searchItem.icon className="w-4 h-4" />
                     {!collapsed && <span>{searchItem.title}</span>}
                   </div>
@@ -147,10 +147,10 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton 
-                            className={`data-[state=open]:bg-sidebar-accent w-full ${collapsed ? 'justify-center' : 'justify-between'}`}
+                            className="data-[state=open]:bg-sidebar-accent w-full justify-between"
                             isActive={hasActiveItems}
                           >
-                            <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+                            <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
                               <item.icon className="w-4 h-4" />
                               {!collapsed && <span>{item.title}</span>}
                             </div>
@@ -192,7 +192,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                       isActive={isActive(item.url!)}
                       className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                     >
-                      <NavLink to={item.url!} className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+                      <NavLink to={item.url!} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
                         <item.icon className="w-4 h-4" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -210,7 +210,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink to="/settings" className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+              <NavLink to="/settings" className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
                 <Settings className="w-4 h-4" />
                 {!collapsed && <span>Settings</span>}
               </NavLink>
