@@ -8,8 +8,7 @@ import {
   MessageSquare, 
   Settings,
   ChevronRight,
-  Plus,
-  Glasses
+  Plus
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -34,21 +33,27 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 const mainItems = [
   { title: "Ideas Hub", url: "/", icon: Home },
+  { title: "Search", url: "/search", icon: Search },
 ]
 
-// These will be functional when implementing workflow views
 const workspaceItems = [
   { 
     title: "Canvas Tools", 
     icon: FileText,
     items: [
-      { title: "Current Project", url: "/?view=workflow" }, // Link to workflow view of current idea
+      { title: "Deconstruction", url: "/deconstruct" },
+      { title: "Evidence", url: "/evidence" },
+      { title: "Discovery", url: "/discovery" },
+      { title: "Synthesis", url: "/synthesis" },
     ]
   },
+  { title: "Customer Research", url: "/research", icon: Users },
+  { title: "Validation", url: "/validation", icon: Target },
 ]
 
 const projectItems = [
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "My Projects", url: "/projects", icon: FileText },
+  { title: "Templates", url: "/templates", icon: FileText },
 ]
 
 export function AppSidebar() {
@@ -60,13 +65,7 @@ export function AppSidebar() {
     "canvas-tools": true,
   })
 
-  const isActive = (path: string) => {
-    // Handle special case for workflow view
-    if (path === "/?view=workflow") {
-      return currentPath === "/" && window.location.search.includes("view=workflow")
-    }
-    return currentPath === path
-  }
+  const isActive = (path: string) => currentPath === path
   const isGroupActive = (items: any[]) => items.some(item => isActive(item.url))
   
   const toggleGroup = (key: string) => {
@@ -81,7 +80,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-3 py-2">
           <div className="w-6 h-6 bg-sidebar-primary rounded flex items-center justify-center">
-            <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
+            <Target className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
             <span className="font-semibold text-sidebar-foreground">StartupDetective</span>
@@ -170,25 +169,20 @@ export function AppSidebar() {
                   )
                 }
                 
-                // This handles items without sub-items that have a direct URL
-                if ('url' in item && typeof item.url === 'string') {
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild
-                        isActive={isActive(item.url)}
-                        className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
-                      >
-                        <NavLink to={item.url} className="flex items-center gap-3">
-                          <item.icon className="w-4 h-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                }
-                
-                return null
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild
+                      isActive={isActive(item.url!)}
+                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
+                    >
+                      <NavLink to={item.url!} className="flex items-center gap-3">
+                        <item.icon className="w-4 h-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -217,9 +211,14 @@ export function AppSidebar() {
               ))}
               {!collapsed && (
                 <SidebarMenuItem>
-                  <div className="px-3 py-2 text-xs text-sidebar-muted">
-                    Coming soon: Create and manage multiple startup ideas
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  >
+                    <Plus className="w-4 h-4 mr-3" />
+                    New Project
+                  </Button>
                 </SidebarMenuItem>
               )}
             </SidebarMenu>
@@ -230,9 +229,12 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="px-3 py-2 text-xs text-sidebar-muted">
-              {!collapsed ? "More features coming soon" : "..."}
-            </div>
+            <SidebarMenuButton asChild>
+              <NavLink to="/settings" className="flex items-center gap-3">
+                <Settings className="w-4 h-4" />
+                {!collapsed && <span>Settings</span>}
+              </NavLink>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
