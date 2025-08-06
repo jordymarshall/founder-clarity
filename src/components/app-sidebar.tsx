@@ -96,9 +96,14 @@ export function AppSidebar() {
                   isActive={isActive(item.url)}
                   className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                 >
-                  <NavLink to={item.url} className="flex items-center gap-3">
-                    <item.icon className="w-4 h-4" />
-                    {!collapsed && <span>{item.title}</span>}
+                  <NavLink to={item.url} className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </div>
+                    {!collapsed && item.title === "Search" && (
+                      <span className="text-xs text-sidebar-muted bg-sidebar-accent px-1.5 py-0.5 rounded">⌘K</span>
+                    )}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

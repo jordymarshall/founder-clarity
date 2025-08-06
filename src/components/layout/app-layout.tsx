@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, Menu } from 'lucide-react';
+import { HelpCircle, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CommandMenu } from '@/components/ui/command-menu';
 import { CoachPanel } from '@/components/ui/coach-panel';
@@ -37,6 +37,14 @@ export function AppLayout({ children }: AppLayoutProps) {
             <header className="h-12 flex items-center border-b border-border px-4 bg-background sticky top-0 z-30">
               <SidebarTrigger className="mr-2" />
               <div className="flex-1" />
+              <Button
+                onClick={() => setCommandMenuOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground mr-2"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
               <Button
                 onClick={() => setCommandMenuOpen(true)}
                 variant="ghost"
