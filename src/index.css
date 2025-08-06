@@ -56,21 +56,16 @@
     /* Spacing */
     --spacing-unit: 0.5rem; /* 8px base unit */
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Linear-inspired Sidebar Colors - Dark Theme */
+    --sidebar-background: 225 6% 6.9%; /* Same as main background */
+    --sidebar-foreground: 225 7% 97.6%;
+    --sidebar-primary: 169 65% 61%; /* Primary accent */
+    --sidebar-primary-foreground: 225 7% 5%;
+    --sidebar-accent: 225 6% 9.4%; /* Subtle background */
+    --sidebar-accent-foreground: 225 7% 97.6%;
+    --sidebar-border: 225 6% 14.9%; /* Same as border */
+    --sidebar-ring: 169 65% 61%; /* Primary for focus */
+    --sidebar-muted: 225 3% 64.3%; /* Muted text */
   }
 }
 
