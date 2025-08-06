@@ -52,10 +52,6 @@ const workspaceItems = [
   { title: "Validation", url: "/validation", icon: Target },
 ]
 
-const projectItems = [
-  { title: "My Projects", url: "/projects", icon: FileText },
-  { title: "Templates", url: "/templates", icon: FileText },
-]
 
 export function AppSidebar() {
   const { state, isMobile } = useSidebar()
@@ -189,42 +185,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Projects Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-xs font-medium">
-            {!collapsed && "Projects"}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {projectItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild
-                    isActive={isActive(item.url)}
-                    className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
-                  >
-                    <NavLink to={item.url} className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              {!collapsed && (
-                <SidebarMenuItem>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                  >
-                    <Plus className="w-4 h-4 mr-3" />
-                    New Project
-                  </Button>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
