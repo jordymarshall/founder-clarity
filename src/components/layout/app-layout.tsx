@@ -28,28 +28,30 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-sidebar">
         <AppSidebar />
         
-        <SidebarInset className="flex-1">
-          {/* Top Header */}
-          <header className="h-12 flex items-center border-b border-border px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
-            <SidebarTrigger className="mr-2" />
-            <div className="flex-1" />
-            <Button
-              onClick={() => setCommandMenuOpen(true)}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-            >
-              ⌘K
-            </Button>
-          </header>
+        <SidebarInset className="flex-1 p-4">
+          <div className="bg-background rounded-lg shadow-sm border min-h-full flex flex-col">
+            {/* Top Header */}
+            <header className="h-12 flex items-center border-b border-border px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-30 rounded-t-lg">
+              <SidebarTrigger className="mr-2" />
+              <div className="flex-1" />
+              <Button
+                onClick={() => setCommandMenuOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+              >
+                ⌘K
+              </Button>
+            </header>
 
-          {/* Main Content */}
-          <main className="flex-1">
-            {children}
-          </main>
+            {/* Main Content */}
+            <main className="flex-1 p-6">
+              {children}
+            </main>
+          </div>
         </SidebarInset>
         
         {/* Coach Trigger */}
