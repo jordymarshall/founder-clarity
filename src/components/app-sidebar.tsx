@@ -76,8 +76,8 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
       collapsible="icon"
     >
       <SidebarHeader className="">
-        <div className={`flex items-center gap-2 px-3 py-2 mt-2 ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-7 h-7 bg-sidebar-primary rounded flex items-center justify-center">
+        <div className="flex items-center gap-2 px-3 py-2 mt-2">
+          <div className="w-6 h-6 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
@@ -97,7 +97,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                   isActive={isActive(item.url)}
                   className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                 >
-                  <NavLink to={item.url} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                  <NavLink to={item.url} className="flex items-center gap-3">
                     <item.icon className="w-4 h-4" />
                     {!collapsed && <span>{item.title}</span>}
                   </NavLink>
@@ -111,7 +111,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                 onClick={onSearchClick}
                 className="cursor-pointer"
               >
-                <div className={`flex items-center gap-3 justify-between w-full ${collapsed ? 'justify-center' : ''}`}>
+                <div className="flex items-center gap-3 justify-between w-full">
                   <div className="flex items-center gap-3">
                     <searchItem.icon className="w-4 h-4" />
                     {!collapsed && <span>{searchItem.title}</span>}
@@ -150,7 +150,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                             className="data-[state=open]:bg-sidebar-accent w-full justify-between"
                             isActive={hasActiveItems}
                           >
-                            <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                            <div className="flex items-center gap-3">
                               <item.icon className="w-4 h-4" />
                               {!collapsed && <span>{item.title}</span>}
                             </div>
@@ -192,7 +192,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                       isActive={isActive(item.url!)}
                       className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                     >
-                      <NavLink to={item.url!} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                      <NavLink to={item.url!} className="flex items-center gap-3">
                         <item.icon className="w-4 h-4" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
@@ -210,7 +210,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <NavLink to="/settings" className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+              <NavLink to="/settings" className="flex items-center gap-3">
                 <Settings className="w-4 h-4" />
                 {!collapsed && <span>Settings</span>}
               </NavLink>
