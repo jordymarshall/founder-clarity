@@ -78,6 +78,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
   const [title, setTitle] = useState(block.title);
   const [content, setContent] = useState(block.content);
   const isEditing = editingId === block.id;
+  const isEmpty = !block.title && !block.content;
   
   const {
     attributes,
@@ -105,6 +106,18 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
     onCancel();
   };
 
+  const handleStartEditing = () => {
+    onEdit(block.id);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.metaKey) {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -117,9 +130,10 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
       <Card className={cn(
         "relative transition-all duration-200 hover:shadow-md cursor-pointer mb-3",
         config.color,
-        isDragging && "shadow-xl"
+        isDragging && "shadow-xl",
+        isEditing && "ring-2 ring-primary ring-offset-1"
       )}>
-        {!isDragging && (
+        {!isDragging && !isEditing && (
           <div 
             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
             {...attributes}
@@ -136,31 +150,43 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Insight title..."
-                className="text-sm font-medium"
+                className="text-sm font-medium border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
                 autoFocus
+                onKeyDown={handleKeyDown}
               />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleSave} className="h-6 px-2">
-                  <Check className="h-3 w-3" />
+              <div className="flex gap-2 opacity-75">
+                <Button size="sm" onClick={handleSave} className="h-6 px-2 text-xs">
+                  <Check className="h-3 w-3 mr-1" />
+                  Save
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleCancel} className="h-6 px-2">
-                  <X className="h-3 w-3" />
+                <Button size="sm" variant="ghost" onClick={handleCancel} className="h-6 px-2 text-xs">
+                  <X className="h-3 w-3 mr-1" />
+                  Cancel
                 </Button>
+                <span className="text-xs text-muted-foreground self-center">⌘+Enter to save</span>
               </div>
             </div>
           ) : (
             <div className="flex items-start justify-between">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle 
+                className={cn(
+                  "text-sm font-medium cursor-text",
+                  isEmpty && "text-muted-foreground"
+                )}
+                onClick={handleStartEditing}
+              >
                 {block.title || "New Insight"}
               </CardTitle>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onEdit(block.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
+              {!isEmpty && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleStartEditing}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           )}
         </CardHeader>
@@ -171,10 +197,18 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Add your insights here..."
-              className="min-h-[60px] text-sm resize-none"
+              className="min-h-[60px] text-sm resize-none border-none p-0 focus-visible:ring-0 bg-transparent"
+              onKeyDown={handleKeyDown}
             />
           ) : (
-            <div className="min-h-[60px] text-sm leading-relaxed">
+            <div 
+              className={cn(
+                "min-h-[60px] text-sm leading-relaxed cursor-text",
+                isEmpty && "text-muted-foreground italic",
+                !isEmpty && "hover:bg-background/50 rounded p-1 -m-1 transition-colors"
+              )}
+              onClick={handleStartEditing}
+            >
               {block.content || "Click to add insights..."}
             </div>
           )}
@@ -338,6 +372,8 @@ export function SynthesisCanvas({ className }: SynthesisCanvasProps) {
       content: '',
     };
     setBlocks((prev) => [...prev, newBlock]);
+    // Auto-edit the new block
+    setTimeout(() => setEditingId(newBlock.id), 100);
   }, []);
 
   const activeBlock = blocks.find((block) => block.id === activeId);
