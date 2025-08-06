@@ -133,4 +133,9 @@
   .animate-fade-in {
     animation: fade-in 0.6s ease-out;
   }
+
+  /* Sidebar Border Override */
+  .sidebar-borderless {
+    border-right: none !important;
+  }
 }
