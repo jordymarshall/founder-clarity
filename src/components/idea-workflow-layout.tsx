@@ -5,6 +5,7 @@ import { InterviewScriptScreen } from '@/components/interview-script-screen';
 import { EvidenceTab } from '@/components/evidence-tab';
 import { HypothesisCanvas } from '@/components/hypothesis-canvas';
 import { SynthesisCanvas } from '@/components/synthesis-canvas';
+import { DeconstructCanvas } from '@/components/deconstruct-canvas';
 import { ArrowLeft } from 'lucide-react';
 
 interface IdeaWorkflowLayoutProps {
@@ -67,15 +68,16 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
             </TabsTrigger>
           </TabsList>
 
-          {/* Module 1: Hypothesis Canvas */}
+          {/* Module 1: Idea Deconstruction */}
           <TabsContent value="module1" className="space-y-6">
-            <HypothesisCanvas 
-              idea={idea} 
-              isInitialized={canvasInitialized}
-              onInitialized={() => setCanvasInitialized(true)}
-              persistedCards={canvasCards}
-              onCardsChange={setCanvasCards}
-            />
+            <div className="max-w-6xl mx-auto space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-semibold">Module 1: Idea Deconstruction</h2>
+                <p className="text-muted-foreground">Break down your idea into core components</p>
+              </div>
+              
+              <DeconstructCanvas idea={idea} />
+            </div>
           </TabsContent>
 
           {/* Module 2: Finding Evidence */}
