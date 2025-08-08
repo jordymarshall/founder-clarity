@@ -7,7 +7,14 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-
+import { ProtectedRoute } from "@/components/auth/protected-route";
+import Deconstruct from "./pages/Deconstruct";
+import Evidence from "./pages/Evidence";
+import Discovery from "./pages/Discovery";
+import Synthesis from "./pages/Synthesis";
+import Research from "./pages/Research";
+import Validation from "./pages/Validation";
+import Settings from "./pages/Settings";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -20,6 +27,13 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/deconstruct" element={<ProtectedRoute><Deconstruct /></ProtectedRoute>} />
+            <Route path="/evidence" element={<ProtectedRoute><Evidence /></ProtectedRoute>} />
+            <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
+            <Route path="/synthesis" element={<ProtectedRoute><Synthesis /></ProtectedRoute>} />
+            <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
+            <Route path="/validation" element={<ProtectedRoute><Validation /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
