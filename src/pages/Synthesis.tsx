@@ -1,11 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
 import { SynthesisCanvas } from "@/components/synthesis-canvas";
 
+function useIdeaFromParam() {
+  const { ideaSlug } = useParams();
+  return useMemo(() => (ideaSlug ? decodeURIComponent(ideaSlug).replace(/-/g, " ") : "Untitled Idea"), [ideaSlug]);
+}
+
 export default function Synthesis() {
+  const idea = useIdeaFromParam();
+
   useEffect(() => {
-    document.title = "Synthesis | StartupDetective";
-  }, []);
+    document.title = `${idea} — Synthesis | StartupDetective`;
+  }, [idea]);
 
   return (
     <AppLayout>

@@ -11,7 +11,7 @@ import {
   Plus,
   Glasses
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import {
   Sidebar,
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { IdeaSelectDialog } from "@/components/idea-select-dialog"
 
 const mainItems = [
   { title: "Ideas Hub", url: "/", icon: Home },
@@ -43,14 +44,13 @@ const workspaceItems = [
     title: "Canvas Tools", 
     icon: FileText,
     items: [
-      { title: "Deconstruction", url: "/deconstruct" },
-      { title: "Evidence", url: "/evidence" },
-      { title: "Discovery", url: "/discovery" },
-      { title: "Synthesis", url: "/synthesis" },
+      { title: "Deconstruction", module: "deconstruct" },
+      { title: "Evidence", module: "evidence" },
+      { title: "Discovery", module: "discovery" },
+      { title: "Synthesis", module: "synthesis" },
+      { title: "Design", module: "design" },
     ]
-  },
-  { title: "Customer Research", url: "/research", icon: Users },
-  { title: "Validation", url: "/validation", icon: Target },
+  }
 ]
 
 
@@ -58,16 +58,24 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
   const { state, isMobile } = useSidebar()
   const collapsed = state === "collapsed"
   const location = useLocation()
+  const navigate = useNavigate()
   const currentPath = location.pathname
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "canvas-tools": true,
   })
-
+  const [ideaDialogOpen, setIdeaDialogOpen] = useState(false)
+  const [targetModule, setTargetModule] = useState<string | null>(null)
   const isActive = (path: string) => currentPath === path
-  const isGroupActive = (items: any[]) => items.some(item => isActive(item.url))
+  const isModuleActive = (module: string) => currentPath.includes('/ideas/') && currentPath.endsWith(`/${module}`)
+  const isGroupActive = (items: any[]) => items.some((item: any) => (item.url ? isActive(item.url) : item.module ? isModuleActive(item.module) : false))
   
   const toggleGroup = (key: string) => {
     setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+  
+  const handleNavigateToModule = (module: string) => {
+    setTargetModule(module)
+    setIdeaDialogOpen(true)
   }
 
   return (
@@ -169,11 +177,11 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                               {item.items.map((subItem) => (
                                 <SidebarMenuSubItem key={subItem.title}>
                                   <SidebarMenuSubButton 
-                                    asChild
-                                    isActive={isActive(subItem.url)}
+                                    isActive={isModuleActive(subItem.module)}
                                     className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
+                                    onClick={() => handleNavigateToModule(subItem.module)}
                                   >
-                                    <NavLink to={subItem.url}>{subItem.title}</NavLink>
+                                    {subItem.title}
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               ))}
@@ -206,7 +214,17 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
 
       </SidebarContent>
 
-      <SidebarFooter className="">
+      <IdeaSelectDialog
+        open={ideaDialogOpen}
+        onOpenChange={setIdeaDialogOpen}
+        onSubmit={(ideaName) => {
+          if (!targetModule) return
+          const slug = encodeURIComponent(ideaName.trim().replace(/\s+/g, '-'))
+          navigate(`/ideas/${slug}/${targetModule}`)
+        }}
+      />
+
+      <SidebarFooter className="" >
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
