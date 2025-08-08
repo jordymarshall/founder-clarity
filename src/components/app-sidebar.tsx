@@ -193,20 +193,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                   )
                 }
                 
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild
-                      isActive={isActive(item.url!)}
-                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
-                    >
-                      <NavLink to={item.url!} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-                        <item.icon className="w-4 h-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
+                return null
               })}
             </SidebarMenu>
           </SidebarGroupContent>
