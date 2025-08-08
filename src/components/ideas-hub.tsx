@@ -2,35 +2,19 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRight, Archive, Plus } from 'lucide-react';
-
-interface Idea {
-  id: string;
-  text: string;
-  createdAt: Date;
-}
+import { useIdeas } from '@/hooks/use-ideas';
 
 interface IdeasHubProps {
   onInvestigate?: (idea: string) => void;
 }
 
 export function IdeasHub({ onInvestigate }: IdeasHubProps) {
-  const [ideas, setIdeas] = useState<Idea[]>([
-    { id: '1', text: 'AI-powered customer interview analysis tool', createdAt: new Date() },
-    { id: '2', text: 'Subscription box for sustainable office supplies', createdAt: new Date() },
-    { id: '3', text: 'Remote team building platform with VR integration', createdAt: new Date() },
-  ]);
+  const { ideas, addIdea, removeIdea } = useIdeas();
   const [newIdea, setNewIdea] = useState('');
 
   const handleAddIdea = () => {
     if (!newIdea.trim()) return;
-    
-    const idea: Idea = {
-      id: Date.now().toString(),
-      text: newIdea,
-      createdAt: new Date()
-    };
-    
-    setIdeas(prev => [idea, ...prev]);
+    const idea = addIdea(newIdea);
     setNewIdea('');
   };
 
@@ -42,7 +26,7 @@ export function IdeasHub({ onInvestigate }: IdeasHubProps) {
   };
 
   const handleArchiveIdea = (ideaId: string) => {
-    setIdeas(prev => prev.filter(idea => idea.id !== ideaId));
+    removeIdea(ideaId);
   };
 
   return (
