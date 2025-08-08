@@ -20,6 +20,12 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  useEffect(() => {
+    const openIdeas = (_e: Event) => setCurrentView('ideas')
+    window.addEventListener('open-ideas-hub', openIdeas)
+    return () => window.removeEventListener('open-ideas-hub', openIdeas)
+  }, [])
+ 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');

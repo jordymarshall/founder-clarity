@@ -1,5 +1,6 @@
 import React from 'react'
-import { Lightbulb, FileText, MessageSquare, Target } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Lightbulb, FileText, MessageSquare } from 'lucide-react'
 import {
   CommandDialog,
   CommandInput,
@@ -15,17 +16,32 @@ interface CommandMenuProps {
   onOpenChange: (open: boolean) => void
 }
 
-const commands = [
-  { id: 'new-idea', label: 'New Idea', icon: Lightbulb, action: () => console.log('New idea') },
-  { id: 'ideas-hub', label: 'Ideas Hub', icon: FileText, action: () => console.log('Ideas hub') },
-  { id: 'investigation', label: 'Investigation Canvas', icon: Target, action: () => console.log('Investigation') },
-  { id: 'coach', label: 'Ask Coach', icon: MessageSquare, action: () => console.log('Coach') },
-]
-
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
+  const navigate = useNavigate()
+
+  const commands = [
+    {
+      id: 'ideas-hub',
+      label: 'Ideas Hub',
+      icon: FileText,
+      action: () => {
+        window.dispatchEvent(new Event('open-ideas-hub'))
+        navigate('/')
+      },
+    },
+    {
+      id: 'coach',
+      label: 'Ask Coach',
+      icon: MessageSquare,
+      action: () => {
+        window.dispatchEvent(new Event('open-coach-panel'))
+      },
+    },
+    { id: 'new-idea', label: 'New Idea', icon: Lightbulb, action: () => console.log('New idea') },
+  ] as const
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      {/* Input uses no focus ring to avoid the green outline */}
       <CommandInput placeholder="Search commands..." />
 
       <CommandList>

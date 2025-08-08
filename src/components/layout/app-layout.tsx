@@ -26,6 +26,12 @@ export function AppLayout({ children }: AppLayoutProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    const openCoach = (_e: Event) => setCoachPanelOpen(true)
+    window.addEventListener('open-coach-panel', openCoach)
+    return () => window.removeEventListener('open-coach-panel', openCoach)
+  }, [])
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-sidebar">
