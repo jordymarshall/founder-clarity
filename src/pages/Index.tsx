@@ -62,7 +62,7 @@ const Index = () => {
         {/* Header with sign out */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-semibold">StartupDetective</h1>
+            <h1 className="text-2xl font-semibold">startupblocks</h1>
             <p className="text-sm text-muted-foreground">Welcome back, {user.email}</p>
           </div>
           <Button 

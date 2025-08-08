@@ -89,7 +89,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
-            <span className="font-semibold text-sidebar-foreground">StartupDetective</span>
+            <span className="font-semibold text-sidebar-foreground">startupblocks</span>
           )}
         </div>
       </SidebarHeader>

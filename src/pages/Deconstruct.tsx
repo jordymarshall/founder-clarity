@@ -12,7 +12,7 @@ export default function Deconstruct() {
   const idea = useIdeaFromParam();
 
   useEffect(() => {
-    document.title = `${idea} — Deconstruction | StartupDetective`;
+    document.title = `${idea} — Deconstruction | startupblocks`;
   }, [idea]);
 
   return (
