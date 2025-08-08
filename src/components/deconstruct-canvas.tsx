@@ -39,6 +39,14 @@ interface InsightBlock {
 interface DeconstructCanvasProps {
   className?: string;
   idea: string;
+  initialData?: {
+    problem?: string[];
+    existingAlternatives?: string[];
+    customerSegments?: string[];
+    earlyAdopters?: string[];
+    jobToBeDone?: string[];
+  };
+  onBlocksChange?: (blocks: InsightBlock[]) => void;
 }
 
 const categoryConfig = {
@@ -394,10 +402,36 @@ function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBl
   );
 }
 
-export function DeconstructCanvas({ className, idea }: DeconstructCanvasProps) {
+export function DeconstructCanvas({ className, idea, initialData, onBlocksChange }: DeconstructCanvasProps) {
   const [blocks, setBlocks] = useState<InsightBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Seed with initialData once
+  React.useEffect(() => {
+    if (!initialData) return;
+    if (blocks.length > 0) return;
+    const push = (arr: string[] | undefined, category: InsightBlock['category']) =>
+      (arr || []).slice(0, 5).map((text, idx) => ({
+        id: `${category}-${Date.now()}-${idx}`,
+        category,
+        title: text.split(':')[0]?.slice(0, 48) || 'Insight',
+        content: text,
+      } as InsightBlock));
+    const seeded = [
+      ...push(initialData.problem, 'problem'),
+      ...push(initialData.existingAlternatives, 'alternatives'),
+      ...push(initialData.customerSegments, 'segments'),
+      ...push(initialData.earlyAdopters, 'early-adopters'),
+      ...push(initialData.jobToBeDone, 'job-to-be-done'),
+    ];
+    if (seeded.length) setBlocks(seeded);
+  }, [initialData, blocks.length]);
+
+  // Lift state up when blocks change
+  React.useEffect(() => {
+    onBlocksChange?.(blocks);
+  }, [blocks, onBlocksChange]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

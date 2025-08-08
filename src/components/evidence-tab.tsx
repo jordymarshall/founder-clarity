@@ -277,6 +277,13 @@ export function EvidenceTab({ idea, customerSegment, coreProblem, jobToBeDone, e
     }
   }, [customerSegment, coreProblem, jobToBeDone, existingAlternatives, candidateProfile.customerSegment]);
 
+  // Auto-generate criteria once profile is defined
+  useEffect(() => {
+    if (profileDefined && candidateProfile.customerSegment && !apolloCriteria && !isGeneratingCriteria) {
+      generateApolloSearchCriteria();
+    }
+  }, [profileDefined, candidateProfile.customerSegment]);
+
   useEffect(() => {
     loadSavedCandidates();
   }, [idea]);

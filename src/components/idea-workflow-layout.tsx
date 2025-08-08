@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InterviewScriptScreen } from '@/components/interview-script-screen';
@@ -7,6 +7,7 @@ import { HypothesisCanvas } from '@/components/hypothesis-canvas';
 import { SynthesisCanvas } from '@/components/synthesis-canvas';
 import { DeconstructCanvas } from '@/components/deconstruct-canvas';
 import { ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface IdeaWorkflowLayoutProps {
   idea: string;
@@ -15,8 +16,23 @@ interface IdeaWorkflowLayoutProps {
 
 export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
   const [showInterviewScript, setShowInterviewScript] = useState(false);
-  const [canvasInitialized, setCanvasInitialized] = useState(false);
   const [canvasCards, setCanvasCards] = useState<any[]>([]);
+  const [initialDeconstruct, setInitialDeconstruct] = useState<any | null>(null);
+
+  useEffect(() => {
+    // Kick off AI initialization for this idea
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('initialize-idea', {
+          body: { idea },
+        });
+        if (error) throw error;
+        setInitialDeconstruct(data?.data || null);
+      } catch (e) {
+        console.error('initialize-idea failed', e);
+      }
+    })();
+  }, [idea]);
 
   if (showInterviewScript) {
     return (
@@ -75,8 +91,11 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
                 <h2 className="text-xl font-semibold">Module 1: Idea Deconstruction</h2>
                 <p className="text-muted-foreground">Break down your idea into core components</p>
               </div>
-              
-              <DeconstructCanvas idea={idea} />
+              <DeconstructCanvas 
+                idea={idea} 
+                initialData={initialDeconstruct || undefined}
+                onBlocksChange={(b) => setCanvasCards(b)}
+              />
             </div>
           </TabsContent>
 
@@ -90,10 +109,10 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
               
               <EvidenceTab 
                 idea={idea}
-                customerSegment={canvasCards.find(card => card.id === 'customer-segment')}
-                coreProblem={canvasCards.find(card => card.id === 'core-problem')}
-                jobToBeDone={canvasCards.find(card => card.id === 'job-to-be-done')}
-                existingAlternatives={canvasCards.find(card => card.id === 'existing-alternatives')}
+                customerSegment={{ content: canvasCards.filter((c:any) => c.category === 'segments').map((b:any) => ({ text: b.content })) }}
+                coreProblem={{ content: canvasCards.filter((c:any) => c.category === 'problem').map((b:any) => ({ text: b.content })) }}
+                jobToBeDone={{ content: canvasCards.filter((c:any) => c.category === 'job-to-be-done').map((b:any) => ({ text: b.content })) }}
+                existingAlternatives={{ content: canvasCards.filter((c:any) => c.category === 'alternatives').map((b:any) => ({ text: b.content })) }}
               />
             </div>
           </TabsContent>
