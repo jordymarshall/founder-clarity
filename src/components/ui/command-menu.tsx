@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from '@/components/ui/command'
+import { useIdeas } from '@/hooks/use-ideas'
 
 interface CommandMenuProps {
   open: boolean
@@ -18,6 +19,7 @@ interface CommandMenuProps {
 
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const navigate = useNavigate()
+  const { ideas } = useIdeas()
 
   const commands = [
     {
@@ -42,10 +44,10 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search commands..." />
+      <CommandInput placeholder="Search commands or ideas..." />
 
       <CommandList>
-        <CommandEmpty>No commands found.</CommandEmpty>
+        <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Quick actions">
           {commands.map((command) => {
@@ -53,6 +55,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             return (
               <CommandItem
                 key={command.id}
+                value={command.label}
                 onSelect={() => {
                   command.action()
                   onOpenChange(false)
@@ -66,6 +69,24 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         </CommandGroup>
 
         <CommandSeparator />
+
+        <CommandGroup heading="Ideas">
+          {ideas.map((idea) => (
+            <CommandItem
+              key={idea.id}
+              value={idea.text}
+              onSelect={() => {
+                window.dispatchEvent(
+                  new CustomEvent('open-idea-workflow', { detail: { idea: idea.text } })
+                )
+                onOpenChange(false)
+              }}
+            >
+              <Lightbulb className="mr-2 h-4 w-4" />
+              <span>{idea.text}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
       </CommandList>
     </CommandDialog>
   )

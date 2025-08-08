@@ -22,10 +22,21 @@ const Index = () => {
 
   useEffect(() => {
     const openIdeas = (_e: Event) => setCurrentView('ideas')
+    const openIdeaWorkflow = (e: Event) => {
+      const ce = e as CustomEvent<{ idea: string }>
+      if (ce.detail?.idea) {
+        setSelectedIdea(ce.detail.idea)
+        setCurrentView('workflow')
+      }
+    }
     window.addEventListener('open-ideas-hub', openIdeas)
-    return () => window.removeEventListener('open-ideas-hub', openIdeas)
+    window.addEventListener('open-idea-workflow', openIdeaWorkflow)
+    return () => {
+      window.removeEventListener('open-ideas-hub', openIdeas)
+      window.removeEventListener('open-idea-workflow', openIdeaWorkflow)
+    }
   }, [])
- 
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
