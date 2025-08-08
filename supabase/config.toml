@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.generate-hypothesis-point]
 verify_jwt = false
+
+[functions.initialize-idea]
+verify_jwt = false
