@@ -9,15 +9,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple utility to detect obvious generic filler patterns
+// Sections
+const sections = ['problem','existingAlternatives','customerSegments','earlyAdopters','jobToBeDone'] as const;
+
+// Detect generic filler patterns
 function isGeneric(items: unknown): boolean {
   if (!Array.isArray(items) || items.length === 0) return true;
   const genericPattern = /(initial|additional|another)\s.+(insight|angle|to explore)/i;
   return items.some((t) => typeof t === 'string' && genericPattern.test(t));
 }
 
-async function fetchPerplexityResearch(idea: string): Promise<string> {
+// Perplexity: tailored prompt per section using latest non-pro sonar model
+async function fetchPerplexityForSection(idea: string, section: typeof sections[number]): Promise<string> {
   if (!perplexityApiKey) return '';
+  const instructionsBySection: Record<typeof sections[number], string> = {
+    problem: `Find concrete pain points, friction, and costly workarounds users face for this idea domain. Prefer verbatim phrases from sources when possible.`,
+    existingAlternatives: `List named tools, vendors, open-source projects, DIY workflows people use today. Include brand/tool names and brief why they are used.`,
+    customerSegments: `Identify archetypes/roles/industries and environments. Include seniority bands or company sizes if relevant.`,
+    earlyAdopters: `Pinpoint who feels the problem most acutely and experiments first; communities and contexts where early adoption happens.`,
+    jobToBeDone: `Describe desired outcomes and moments of progress; use JTBD language (switching trigger, desired outcome, anxieties, habits).`,
+  };
+
+  const content = `Do focused web scoping for section: [${section}].\nIdea: ${idea}\nMethodology cues: Lean Canvas, JTBD, Customer Forces Canvas. Be factual and specific.\nReturn a compact brief: max 5 bullets for this section only.`;
+
   try {
     const res = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -28,23 +42,8 @@ async function fetchPerplexityResearch(idea: string): Promise<string> {
       body: JSON.stringify({
         model: 'llama-3.1-sonar-small-128k-online',
         messages: [
-          { role: 'system', content: 'Be precise and concise. Cite concrete products, tools, jobs, and contexts when possible.' },
-          {
-            role: 'user',
-            content:
-              `Do quick scoping research for the startup idea below. Summarize only verifiable, concrete information.
-
-Idea: ${idea}
-
-Return a compact research brief with these sections and bullet points (no more than 5 bullets each):
-[Customer Segments] - Archetypes, roles, environments
-[Problems] - Pain points, friction, costly workarounds
-[Existing Alternatives] - Named tools/brands/processes used today
-[Early Adopters] - Who feels the pain most acutely and experiments early
-[JTBD Clues] - Desired outcomes and moments of progress
-
-Keep it factual, specific, and web-informed. No filler.`
-          }
+          { role: 'system', content: 'Be precise and concise. Cite concrete products, roles, and contexts. No filler.' },
+          { role: 'user', content: instructionsBySection[section] + '\n\n' + content }
         ],
         temperature: 0.2,
         top_p: 0.9,
@@ -57,7 +56,7 @@ Keep it factual, specific, and web-informed. No filler.`
     });
 
     if (!res.ok) {
-      console.error('Perplexity error', await res.text());
+      console.error('Perplexity error', section, await res.text());
       return '';
     }
 
@@ -65,9 +64,17 @@ Keep it factual, specific, and web-informed. No filler.`
     const text = data?.choices?.[0]?.message?.content?.trim() || '';
     return text;
   } catch (e) {
-    console.error('Perplexity fetch failed', e);
+    console.error('Perplexity fetch failed', section, e);
     return '';
   }
+}
+
+async function fetchPerplexityAll(idea: string): Promise<Record<string, string>> {
+  const entries: [typeof sections[number], Promise<string>][] = sections.map((s) => [s, fetchPerplexityForSection(idea, s)]);
+  const results = await Promise.all(entries.map(([, p]) => p));
+  const out: Record<string, string> = {};
+  entries.forEach(([s], i) => { out[s] = results[i]; });
+  return out;
 }
 
 serve(async (req) => {
@@ -86,139 +93,83 @@ serve(async (req) => {
 
     const { idea } = await req.json();
 
-    // Optional: web-informed scoping via Perplexity
-    const researchBrief = await fetchPerplexityResearch(idea);
+    // Web-informed scoping per section via Perplexity (optional)
+    const researchBySection = await fetchPerplexityAll(idea);
+    const usedPerplexity = Object.values(researchBySection).some((v) => v && v.length > 0);
 
-    const system = `You are a senior startup validation coach.
-- Apply the Validation Masterclass and Startup Methodology principles:
-  • Lean Canvas: Problem, Existing Alternatives, Customer Segments, Early Adopters, UVP
-  • Customer/Problem Fit as primary objective
-  • JTBD (desired progress) and switching triggers
-  • Customer Forces Canvas: Push, Pull, Inertia, Friction
-- Use any provided research as grounding. Prefer concrete nouns, roles, tools, brands, and contexts.
-- Output STRICT JSON only.`;
+    async function synthesizeSection(section: typeof sections[number], research: string, count: number): Promise<string[]> {
+      const system = `You are a senior startup validation coach.
+- Apply Validation Masterclass & Startup Methodology: Lean Canvas, JTBD, Customer Forces (push, pull, inertia, friction).
+- Use provided research when available. Prefer concrete roles, tools, brands, and contexts.
+- Return STRICT JSON object: { "items": string[] } and nothing else.`;
 
-    const userBase = (exactCount: number | null) => `Deconstruct the startup idea into structured sections using the methodology above.
-
+      const prompt = `Write ${count} crisp, concrete bullets for the section "${section}" for the idea below.
 Idea: ${idea}
-
-Web-informed Research (optional, may be empty):\n${researchBrief || 'No external research available.'}
-
-Return JSON with this schema:
-{
-  "problem": string[],
-  "existingAlternatives": string[],
-  "customerSegments": string[],
-  "earlyAdopters": string[],
-  "jobToBeDone": string[]
-}
-
+Section-specific research (may be empty):\n${research || 'None'}
 Guidelines:
-- Provide ${exactCount ? exactCount : '3-5'} crisp, concrete bullets per section
-- Avoid generic phrasing and filler; use specific roles, contexts, tools, examples, and outcomes
-- Each bullet states ONE idea; avoid conjunctions that bundle multiple ideas
-- Align to JTBD and Forces where relevant (push, pull, inertia, friction)
-- If the research contradicts common assumptions, side with research
-- Do not include placeholders like "Initial insight" or "Another angle"`;
+- ONE idea per bullet; avoid conjunctions
+- Avoid generic phrasing or placeholders
+- Align to JTBD and Forces where relevant
+- If no research, reason from first principles in this domain`;
 
-    async function callOpenAI(prompt: string) {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-5-mini',
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.4,
-          max_tokens: 900,
-        }),
-      });
-      const data = await res.json();
-      const content = data.choices?.[0]?.message?.content || '{}';
-      return content;
-    }
-
-    function parseJSON(content: string): any {
-      try { return JSON.parse(content); } catch { return {}; }
-    }
-
-    function invalid(obj: any): boolean {
-      if (!obj || typeof obj !== 'object') return true;
-      const sections = ['problem','existingAlternatives','customerSegments','earlyAdopters','jobToBeDone'] as const;
-      return sections.some((k) => !Array.isArray(obj[k]) || obj[k].length === 0 || isGeneric(obj[k]));
-    }
-
-    async function synthesizeSection(label: string, count: number): Promise<string[]> {
-      const sectionPrompt = `Using the idea and research below, write ${count} specific, concrete bullets for the section "${label}" only. No preamble, STRICT JSON array only.
-Idea: ${idea}
-Research: ${researchBrief || 'None'}
-Constraints:
-- Avoid generic phrasing and placeholders
-- Use concrete roles, examples, tools, brands, or contexts when possible
-- ONE idea per bullet`;
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-5-mini',
-          messages: [
-            { role: 'system', content: 'Return STRICT JSON only.' },
-            { role: 'user', content: sectionPrompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.35,
-          max_tokens: 400,
-        }),
-      });
-      const data = await res.json();
-      // Expecting an array JSON; if object, try to coerce
-      let arr: any;
-      try { arr = JSON.parse(data.choices?.[0]?.message?.content || '[]'); } catch { arr = []; }
-      if (Array.isArray(arr)) return arr.filter((s) => typeof s === 'string');
-      // If we got an object like { items: [...] }
-      if (Array.isArray(arr?.items)) return arr.items.filter((s: unknown) => typeof s === 'string');
-      return [];
-    }
-
-    // First attempt (3-5 items)
-    let content = await callOpenAI(userBase(null));
-    let parsed: any = parseJSON(content);
-
-    // If empty/missing or generic, try again requiring exactly 4
-    const needsRetry = invalid(parsed);
-    if (needsRetry) {
-      content = await callOpenAI(userBase(4));
-      parsed = parseJSON(content);
-    }
-
-    // If still invalid, fill missing sections via targeted synthesis grounded in research
-    const sections = ['problem','existingAlternatives','customerSegments','earlyAdopters','jobToBeDone'] as const;
-    for (const sec of sections) {
-      if (!Array.isArray(parsed?.[sec]) || parsed[sec].length === 0 || isGeneric(parsed[sec])) {
-        parsed[sec] = await synthesizeSection(sec, 4);
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4.1-2025-04-14',
+            messages: [
+              { role: 'system', content: system },
+              { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.35,
+            max_tokens: 500,
+          }),
+        });
+        if (!res.ok) {
+          console.error('OpenAI synthesizeSection error', section, await res.text());
+          return [];
+        }
+        const data = await res.json();
+        let obj: any = {};
+        try { obj = JSON.parse(data.choices?.[0]?.message?.content || '{}'); } catch { obj = {}; }
+        const arr = Array.isArray(obj?.items) ? obj.items.filter((s: unknown) => typeof s === 'string') : [];
+        return arr;
+      } catch (e) {
+        console.error('OpenAI synthesizeSection exception', section, e);
+        return [];
       }
     }
 
-    // Final guard: ensure arrays exist (may still be empty if all else failed)
-    const ensured = {
-      problem: Array.isArray(parsed.problem) ? parsed.problem : [],
-      existingAlternatives: Array.isArray(parsed.existingAlternatives) ? parsed.existingAlternatives : [],
-      customerSegments: Array.isArray(parsed.customerSegments) ? parsed.customerSegments : [],
-      earlyAdopters: Array.isArray(parsed.earlyAdopters) ? parsed.earlyAdopters : [],
-      jobToBeDone: Array.isArray(parsed.jobToBeDone) ? parsed.jobToBeDone : [],
-    };
+    const result: Record<string, string[]> = {};
+    // Synthesize each section with research; retry once if generic/empty
+    for (const sec of sections) {
+      const first = await synthesizeSection(sec, researchBySection[sec] || '', 4);
+      if (!first.length || isGeneric(first)) {
+        const second = await synthesizeSection(sec, researchBySection[sec] || '', 5);
+        result[sec] = second.length ? second : first;
+      } else {
+        result[sec] = first;
+      }
+    }
+
+    // Final guard
+    for (const sec of sections) {
+      if (!Array.isArray(result[sec])) result[sec] = [];
+    }
 
     return new Response(
-      JSON.stringify({ success: true, data: ensured, meta: { usedPerplexity: Boolean(researchBrief), revised: needsRetry, strategy: 'perplexity+openai' } }),
+      JSON.stringify({ success: true, data: {
+        problem: result.problem,
+        existingAlternatives: result.existingAlternatives,
+        customerSegments: result.customerSegments,
+        earlyAdopters: result.earlyAdopters,
+        jobToBeDone: result.jobToBeDone,
+      }, meta: { usedPerplexity, strategy: 'perplexity-per-section + gpt-4.1 synthesis' } }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
