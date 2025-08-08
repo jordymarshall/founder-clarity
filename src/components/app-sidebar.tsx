@@ -84,7 +84,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
       collapsible="icon"
     >
       <SidebarHeader className="">
-        <div className={`flex items-center gap-2 px-3 py-2 mt-2 ${collapsed ? 'justify-center' : ''}`}>
+        <div className={`flex w-full items-center gap-2 ${collapsed ? 'justify-center px-0 py-2 mt-2' : 'justify-start px-3 py-2 mt-2'}`}>
           <div className="w-7 h-7 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
@@ -155,7 +155,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton 
-                            className="data-[state=open]:bg-sidebar-accent w-full justify-between"
+                            className={`data-[state=open]:bg-sidebar-accent w-full ${collapsed ? 'justify-center' : 'justify-between'}`}
                             isActive={hasActiveItems}
                           >
                             <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
@@ -164,9 +164,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                             </div>
                             {!collapsed && (
                               <ChevronRight 
-                                className={`w-4 h-4 transition-transform duration-200 ${
-                                  isOpen ? 'rotate-90' : ''
-                                }`} 
+                                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
                               />
                             )}
                           </SidebarMenuButton>
