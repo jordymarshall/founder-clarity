@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit2, Check, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface InsightBlock {
   id: string;
@@ -186,7 +187,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
             <div className="flex items-start justify-between">
               <CardTitle 
                 className={cn(
-                  "text-sm font-medium cursor-text",
+                  "text-sm font-medium cursor-text whitespace-pre-wrap break-words !leading-snug",
                   isEmpty && "text-muted-foreground"
                 )}
                 onClick={handleStartEditing}
@@ -280,6 +281,7 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
             size="sm"
             variant="outline"
             onClick={() => onAddBlock(category)}
+            disabled={category === 'job-to-be-done' && categoryBlocks.length >= 1}
             className={cn(
               "p-0",
               isSubsection ? "h-6 w-6" : "h-7 w-7"
@@ -406,6 +408,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   const [blocks, setBlocks] = useState<InsightBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Seed with initialData once
   React.useEffect(() => {
@@ -433,6 +436,19 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
     onBlocksChange?.(blocks);
   }, [blocks, onBlocksChange]);
 
+  // Show skeleton while loading initial data or first render
+  React.useEffect(() => {
+    if (blocks.length > 0) {
+      setIsLoading(false);
+      return;
+    }
+    if (!initialData) {
+      const t = setTimeout(() => setIsLoading(false), 1200);
+      return () => clearTimeout(t);
+    }
+    setIsLoading(true);
+  }, [blocks.length, initialData]);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -459,6 +475,16 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
     // Check if we're dropping on a category container
     if (Object.keys(categoryConfig).includes(overId)) {
       const newCategory = overId as keyof typeof categoryConfig;
+
+      // Enforce single-card rule for Job to be Done
+      if (newCategory === 'job-to-be-done') {
+        const jobBlocks = blocks.filter(b => b.category === 'job-to-be-done');
+        const movingWithinSame = activeBlock.category === 'job-to-be-done';
+        if (jobBlocks.length >= 1 && !movingWithinSame) {
+          return; // prevent moving another card into JTBD
+        }
+      }
+
       if (activeBlock.category !== newCategory) {
         setBlocks(prev => 
           prev.map(block => 
@@ -508,6 +534,14 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   }, []);
 
   const addNewBlock = useCallback((category: keyof typeof categoryConfig) => {
+    // Enforce single-card rule for Job to be Done
+    if (category === 'job-to-be-done') {
+      const existing = blocks.find(b => b.category === 'job-to-be-done');
+      if (existing) {
+        setEditingId(existing.id);
+        return;
+      }
+    }
     const newBlock: InsightBlock = {
       id: `${category}-${Date.now()}`,
       category,
@@ -517,7 +551,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
     setBlocks((prev) => [...prev, newBlock]);
     // Auto-edit the new block
     setTimeout(() => setEditingId(newBlock.id), 100);
-  }, []);
+  }, [blocks]);
 
   const activeBlock = blocks.find((block) => block.id === activeId);
 
@@ -530,75 +564,90 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
         </p>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="space-y-6">
-          {/* Row 1: Problem + Customer Segments (with nested subsections) */}
+      {isLoading ? (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex flex-col items-center gap-2">
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-80" />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Problem with nested Alternatives */}
-            <ParentCategoryContainer
-              category="problem"
-              subsectionCategory="alternatives"
-              blocks={blocks}
-              onAddBlock={addNewBlock}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              editingId={editingId}
-            />
-
-            {/* Customer Segments with nested Early Adopters */}
-            <ParentCategoryContainer
-              category="segments"
-              subsectionCategory="early-adopters"
-              blocks={blocks}
-              onAddBlock={addNewBlock}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              editingId={editingId}
-            />
+            <Skeleton className="h-[420px] w-full rounded-lg" />
+            <Skeleton className="h-[420px] w-full rounded-lg" />
           </div>
-
-          {/* Row 2: Full-width Job to be Done section */}
-          <div className="w-full">
-            <CategoryContainer
-              category="job-to-be-done"
-              blocks={blocks}
-              onAddBlock={addNewBlock}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              editingId={editingId}
-            />
-          </div>
+          <Skeleton className="h-[220px] w-full rounded-lg" />
         </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="space-y-6">
+            {/* Row 1: Problem + Customer Segments (with nested subsections) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Problem with nested Alternatives */}
+              <ParentCategoryContainer
+                category="problem"
+                subsectionCategory="alternatives"
+                blocks={blocks}
+                onAddBlock={addNewBlock}
+                onEdit={handleEdit}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                editingId={editingId}
+              />
 
-        <DragOverlay>
-          {activeBlock ? (
-            <Card className={cn(
-              "rotate-3 shadow-2xl opacity-90",
-              categoryConfig[activeBlock.category].color
-            )}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {activeBlock.title || "New Insight"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="min-h-[60px] text-sm">
-                  {activeBlock.content || "Click to add insights..."}
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+              {/* Customer Segments with nested Early Adopters */}
+              <ParentCategoryContainer
+                category="segments"
+                subsectionCategory="early-adopters"
+                blocks={blocks}
+                onAddBlock={addNewBlock}
+                onEdit={handleEdit}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                editingId={editingId}
+              />
+            </div>
+
+            {/* Row 2: Full-width Job to be Done section */}
+            <div className="w-full">
+              <CategoryContainer
+                category="job-to-be-done"
+                blocks={blocks}
+                onAddBlock={addNewBlock}
+                onEdit={handleEdit}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                editingId={editingId}
+              />
+            </div>
+          </div>
+
+          <DragOverlay>
+            {activeBlock ? (
+              <Card className={cn(
+                "rotate-3 shadow-2xl opacity-90",
+                categoryConfig[activeBlock.category].color
+              )}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium whitespace-pre-wrap break-words !leading-snug">
+                    {activeBlock.title || "New Insight"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="min-h-[60px] text-sm">
+                    {activeBlock.content || "Click to add insights..."}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+
     </div>
   );
 }
