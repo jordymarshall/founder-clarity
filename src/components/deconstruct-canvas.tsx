@@ -158,18 +158,27 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
           if (!isEditing) onOpenDetails(block)
         }}
       >
-        {!isDragging && !isEditing && (
-          <div 
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); handleStartEditing(); }}
+              className="h-6 w-6 p-0"
+              aria-label="Edit insight"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
+            <div
+              className="cursor-grab active:cursor-grabbing p-1"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
-        )}
         
-        <CardHeader className="pb-2">
-          {isEditing ? (
+        {isEditing && (
+          <CardHeader className="pb-2">
             <div className="space-y-2">
               <div className="flex gap-2 opacity-75">
                 <Button size="sm" onClick={handleSave} className="h-6 px-2 text-xs">
@@ -183,22 +192,8 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
                 <span className="text-xs text-muted-foreground self-center">⌘+Enter to save</span>
               </div>
             </div>
-          ) : (
-            <div className="flex items-start justify-end">
-              {!isEmpty && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => { e.stopPropagation(); handleStartEditing(); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                  aria-label="Edit insight"
-                >
-                  <Edit2 className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          )}
-        </CardHeader>
+          </CardHeader>
+        )}
         
         <CardContent className="pt-0">
           {isEditing ? (
