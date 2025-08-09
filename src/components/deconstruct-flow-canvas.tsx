@@ -38,7 +38,7 @@ export interface DeconstructFlowCanvasProps {
 }
 
 type BlockCategory = 'problem' | 'alternatives' | 'segments' | 'early-adopters' | 'job-to-be-done';
-interface BlockData {
+interface BlockData extends Record<string, unknown> {
   category: BlockCategory;
   label: string;
   text: string;
@@ -83,7 +83,7 @@ function makeNodesFromInitial(initial?: DeconstructFlowCanvasProps['initialData'
   return nodes;
 }
 
-function BlockNode({ data, id }: NodeProps<BlockData>) {
+function BlockNode({ data, id }: { data: BlockData; id: string }) {
   return (
     <div className={cn(
       'w-[300px] border rounded-md p-3 bg-card text-card-foreground border-border',
@@ -105,24 +105,28 @@ function BlockNode({ data, id }: NodeProps<BlockData>) {
   );
 }
 
-const nodeTypes = { block: BlockNode } as const;
+const nodeTypes: NodeTypes = { block: BlockNode as any };
 
 export function DeconstructFlowCanvas({ className, idea, initialData, onBlocksChange }: DeconstructFlowCanvasProps) {
   const initialNodes = useMemo(() => makeNodesFromInitial(initialData), [initialData]);
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<BlockData>[]>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<BlockData>>(initialNodes);
   const [edges, _setEdges, onEdgesChange] = useEdgesState([]);
 
   // attach handlers into node data once mounted/updated
   useEffect(() => {
-    setNodes((prev) => prev.map((n) => ({
-      ...n,
-      data: {
-        ...(n.data as BlockData),
-        onChange: (id: string, text: string) => {
-          setNodes((curr) => curr.map((m) => m.id === id ? { ...m, data: { ...(m.data as BlockData), text } } : m));
+    setNodes((prev) =>
+      prev.map((n) => ({
+        ...n,
+        data: {
+          ...(n.data as BlockData),
+          onChange: (id: string, text: string) => {
+            setNodes((curr) =>
+              curr.map((m) => (m.id === id ? { ...m, data: { ...(m.data as BlockData), text } } : m))
+            );
+          },
         },
-      },
-    })) as Node<BlockData>[]);
+      }))
+    );
   }, [setNodes]);
 
   // bubble up block changes whenever nodes change
