@@ -29,6 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit2, Check, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogHeading, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface InsightBlock {
   id: string;
@@ -85,12 +86,13 @@ const categoryConfig = {
   },
 };
 
-function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
+function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOpenDetails }: {
   block: InsightBlock;
   onEdit: (id: string) => void;
   onSave: (id: string, title: string, content: string) => void;
   onCancel: () => void;
   editingId: string | null;
+  onOpenDetails: (block: InsightBlock) => void;
 }) {
   const [title, setTitle] = useState(block.title);
   const [content, setContent] = useState(block.content);
@@ -144,12 +146,18 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
         isDragging && "opacity-50 rotate-1 scale-105"
       )}
     >
-      <Card className={cn(
-        "relative transition-all duration-200 hover:shadow-md cursor-pointer mb-3",
-        config.color,
-        isDragging && "shadow-xl",
-        isEditing && "ring-2 ring-primary ring-offset-1"
-      )}>
+      <Card
+        className={cn(
+          "relative transition-all duration-200 hover:shadow-md cursor-pointer mb-3",
+          config.color,
+          isDragging && "shadow-xl",
+          isEditing && "ring-2 ring-primary ring-offset-1"
+        )}
+        role="button"
+        onClick={() => {
+          if (!isEditing) onOpenDetails(block)
+        }}
+      >
         {!isDragging && !isEditing && (
           <div 
             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
@@ -187,10 +195,9 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
             <div className="flex items-start justify-between">
               <CardTitle 
                 className={cn(
-                  "text-sm font-medium cursor-text whitespace-pre-wrap break-words !leading-snug",
+                  "text-sm font-medium whitespace-pre-wrap break-words max-w-full overflow-visible !leading-snug",
                   isEmpty && "text-muted-foreground"
                 )}
-                onClick={handleStartEditing}
               >
                 {block.title || "New Insight"}
               </CardTitle>
@@ -198,8 +205,9 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={handleStartEditing}
+                  onClick={(e) => { e.stopPropagation(); handleStartEditing(); }}
                   className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                  aria-label="Edit insight"
                 >
                   <Edit2 className="h-3 w-3" />
                 </Button>
@@ -220,11 +228,10 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
           ) : (
             <div 
               className={cn(
-                "min-h-[60px] text-sm leading-relaxed cursor-text",
+                "min-h-[60px] text-sm leading-relaxed",
                 isEmpty && "text-muted-foreground italic",
                 !isEmpty && "hover:bg-background/50 rounded p-1 -m-1 transition-colors"
               )}
-              onClick={handleStartEditing}
             >
               {block.content || "Click to add insights..."}
             </div>
@@ -235,7 +242,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId }: {
   );
 }
 
-function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCancel, editingId, isSubsection = false }: {
+function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCancel, editingId, isSubsection = false, onOpenDetails }: {
   category: keyof typeof categoryConfig;
   blocks: InsightBlock[];
   onAddBlock: (category: keyof typeof categoryConfig) => void;
@@ -244,6 +251,7 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
   onCancel: () => void;
   editingId: string | null;
   isSubsection?: boolean;
+  onOpenDetails: (block: InsightBlock) => void;
 }) {
   const config = categoryConfig[category];
   const categoryBlocks = blocks.filter(block => block.category === category);
@@ -311,6 +319,7 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
                   onSave={onSave}
                   onCancel={onCancel}
                   editingId={editingId}
+                  onOpenDetails={onOpenDetails}
                 />
               ))
             )}
@@ -321,7 +330,7 @@ function CategoryContainer({ category, blocks, onAddBlock, onEdit, onSave, onCan
   );
 }
 
-function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBlock, onEdit, onSave, onCancel, editingId }: {
+function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBlock, onEdit, onSave, onCancel, editingId, onOpenDetails }: {
   category: keyof typeof categoryConfig;
   subsectionCategory: keyof typeof categoryConfig;
   blocks: InsightBlock[];
@@ -330,6 +339,7 @@ function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBl
   onSave: (id: string, title: string, content: string) => void;
   onCancel: () => void;
   editingId: string | null;
+  onOpenDetails: (block: InsightBlock) => void;
 }) {
   const config = categoryConfig[category];
   const categoryBlocks = blocks.filter(block => block.category === category);
@@ -380,6 +390,7 @@ function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBl
                   onSave={onSave}
                   onCancel={onCancel}
                   editingId={editingId}
+                  onOpenDetails={onOpenDetails}
                 />
               ))
             )}
@@ -397,6 +408,7 @@ function ParentCategoryContainer({ category, subsectionCategory, blocks, onAddBl
             onCancel={onCancel}
             editingId={editingId}
             isSubsection={true}
+            onOpenDetails={onOpenDetails}
           />
         </div>
       </CardContent>
@@ -408,7 +420,8 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   const [blocks, setBlocks] = useState<InsightBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [detailBlock, setDetailBlock] = useState<InsightBlock | null>(null);
+  const isLoading = !initialData || blocks.length === 0;
 
   // Seed with initialData once
   React.useEffect(() => {
@@ -436,18 +449,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
     onBlocksChange?.(blocks);
   }, [blocks, onBlocksChange]);
 
-  // Show skeleton while loading initial data or first render
-  React.useEffect(() => {
-    if (blocks.length > 0) {
-      setIsLoading(false);
-      return;
-    }
-    if (!initialData) {
-      const t = setTimeout(() => setIsLoading(false), 1200);
-      return () => clearTimeout(t);
-    }
-    setIsLoading(true);
-  }, [blocks.length, initialData]);
+// Keep loading until initial data arrives and blocks are populated
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -597,6 +599,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 onSave={handleSave}
                 onCancel={handleCancel}
                 editingId={editingId}
+                onOpenDetails={(b) => setDetailBlock(b)}
               />
 
               {/* Customer Segments with nested Early Adopters */}
@@ -609,6 +612,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 onSave={handleSave}
                 onCancel={handleCancel}
                 editingId={editingId}
+                onOpenDetails={(b) => setDetailBlock(b)}
               />
             </div>
 
@@ -622,6 +626,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 onSave={handleSave}
                 onCancel={handleCancel}
                 editingId={editingId}
+                onOpenDetails={(b) => setDetailBlock(b)}
               />
             </div>
           </div>
@@ -647,6 +652,48 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
           </DragOverlay>
         </DndContext>
       )}
+
+      {/* Details Dialog */}
+      <Dialog open={!!detailBlock} onOpenChange={(open) => { if (!open) setDetailBlock(null) }}>
+        <DialogContent className="max-w-lg animate-fade-in">
+          <DialogHeader>
+            <DialogHeading className="text-lg font-semibold break-words whitespace-pre-wrap !leading-snug">
+              {detailBlock?.title || 'Insight details'}
+            </DialogHeading>
+            <DialogDescription>
+              {detailBlock ? categoryConfig[detailBlock.category].label : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {detailBlock?.content || 'No additional details.'}
+            </div>
+            {/* Placeholder sections for rationale and sources if needed */}
+            {/* <div>
+              <h4 className="text-sm font-medium mb-1">Rationale</h4>
+              <p className="text-sm text-muted-foreground">—</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-1">Sources</h4>
+              <p className="text-sm text-muted-foreground">—</p>
+            </div> */}
+          </div>
+          <DialogFooter>
+            {detailBlock && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingId(detailBlock.id);
+                  setDetailBlock(null);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+            <Button onClick={() => setDetailBlock(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
