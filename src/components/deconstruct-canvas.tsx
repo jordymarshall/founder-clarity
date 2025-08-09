@@ -195,7 +195,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
           </CardHeader>
         )}
         
-        <CardContent className="pt-0">
+        <CardContent className={cn(isEditing ? "pt-0" : "pt-3")}>
           {isEditing ? (
             <Textarea
               value={content}
