@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
-import { DeconstructFlowCanvas } from "@/components/deconstruct-flow-canvas";
+import { DeconstructFabricCanvas } from "@/components/deconstruct-fabric-canvas";
 
 function useIdeaFromParam() {
   const { ideaSlug } = useParams();
@@ -19,7 +19,7 @@ export default function Deconstruct() {
     <AppLayout>
       <section aria-labelledby="page-title">
         <h1 id="page-title" className="text-2xl font-semibold mb-4">Deconstruction Canvas</h1>
-        <DeconstructFlowCanvas idea={idea} />
+        <DeconstructFabricCanvas idea={idea} />
       </section>
     </AppLayout>
   );
