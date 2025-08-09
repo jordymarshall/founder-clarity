@@ -24,7 +24,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Edit2, Check, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -97,7 +97,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
   const [title, setTitle] = useState(block.title);
   const [content, setContent] = useState(block.content);
   const isEditing = editingId === block.id;
-  const isEmpty = !block.title && !block.content;
+  const isEmpty = !block.content;
   
   const {
     attributes,
@@ -171,14 +171,6 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
         <CardHeader className="pb-2">
           {isEditing ? (
             <div className="space-y-2">
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Insight title..."
-                className="text-sm font-medium border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
-                autoFocus
-                onKeyDown={handleKeyDown}
-              />
               <div className="flex gap-2 opacity-75">
                 <Button size="sm" onClick={handleSave} className="h-6 px-2 text-xs">
                   <Check className="h-3 w-3 mr-1" />
@@ -192,15 +184,7 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
               </div>
             </div>
           ) : (
-            <div className="flex items-start justify-between">
-              <CardTitle 
-                className={cn(
-                  "text-sm font-medium whitespace-pre-wrap break-words max-w-full overflow-visible !leading-snug",
-                  isEmpty && "text-muted-foreground"
-                )}
-              >
-                {block.title || "New Insight"}
-              </CardTitle>
+            <div className="flex items-start justify-end">
               {!isEmpty && (
                 <Button
                   size="sm"
@@ -228,9 +212,8 @@ function SortableInsightBlock({ block, onEdit, onSave, onCancel, editingId, onOp
           ) : (
             <div 
               className={cn(
-                "min-h-[60px] text-sm leading-relaxed",
-                isEmpty && "text-muted-foreground italic",
-                !isEmpty && "hover:bg-background/50 rounded p-1 -m-1 transition-colors"
+                "min-h-[60px] text-sm leading-relaxed whitespace-pre-wrap break-words",
+                isEmpty ? "text-muted-foreground italic" : "font-semibold hover:bg-background/50 rounded p-1 -m-1 transition-colors"
               )}
             >
               {block.content || "Click to add insights..."}
@@ -637,13 +620,8 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 "rotate-3 shadow-2xl opacity-90",
                 categoryConfig[activeBlock.category].color
               )}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium whitespace-pre-wrap break-words !leading-snug">
-                    {activeBlock.title || "New Insight"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="min-h-[60px] text-sm">
+                <CardContent className="p-4">
+                  <div className="min-h-[60px] text-sm whitespace-pre-wrap break-words font-semibold">
                     {activeBlock.content || "Click to add insights..."}
                   </div>
                 </CardContent>
@@ -658,7 +636,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
         <DialogContent className="max-w-lg animate-fade-in">
           <DialogHeader>
             <DialogHeading className="text-lg font-semibold break-words whitespace-pre-wrap !leading-snug">
-              {detailBlock?.title || 'Insight details'}
+              {detailBlock?.content || 'Insight details'}
             </DialogHeading>
             <DialogDescription>
               {detailBlock ? categoryConfig[detailBlock.category].label : ''}
