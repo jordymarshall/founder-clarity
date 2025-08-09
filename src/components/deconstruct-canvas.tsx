@@ -671,9 +671,9 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
 
       {/* Details Dialog */}
       <Dialog open={!!detailBlock} onOpenChange={(open) => { if (!open) { setDetailBlock(null); setDetailData(null); setDetailLoading(false); } }}>
-        <DialogContent className="max-w-lg animate-fade-in">
-          <DialogHeader>
-            <DialogHeading className="text-lg font-semibold break-words whitespace-pre-wrap !leading-snug">
+        <DialogContent className="w-[min(96vw,1100px)] max-w-none p-0 overflow-hidden animate-fade-in">
+          <DialogHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-6 py-4">
+            <DialogHeading className="text-lg md:text-xl font-semibold break-words whitespace-pre-wrap !leading-snug">
               {detailBlock?.content || 'Insight details'}
             </DialogHeading>
             <DialogDescription>
@@ -681,7 +681,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5">
+          <div className="max-h-[75vh] overflow-y-auto px-6 py-5 space-y-5">
             <section>
               <h4 className="text-sm font-medium mb-2">Insight</h4>
               <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -701,7 +701,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
             {detailData?.structure?.forces && (
               <section>
                 <h4 className="text-sm font-medium mb-2">Customer Forces</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(['push','pull','inertia','friction'] as const).map((k) => (
                     <div key={k}>
                       <div className="text-xs font-medium mb-1 capitalize">{k}</div>
@@ -796,7 +796,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
             </section>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-3">
             {detailBlock && (
               <Button
                 variant="outline"
