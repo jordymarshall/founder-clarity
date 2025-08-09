@@ -26,8 +26,8 @@ function categoryGuidance(category: Category): string {
   }
 }
 
-async function fetchPerplexityBrief(topic: string): Promise<string> {
-  if (!perplexityApiKey) return '';
+async function fetchPerplexityBrief(topic: string): Promise<{ bullets: { text: string; urls: string[] }[]; raw: string }> {
+  if (!perplexityApiKey) return { bullets: [], raw: '' };
   try {
     const res = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -36,10 +36,10 @@ async function fetchPerplexityBrief(topic: string): Promise<string> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-small-online',
         messages: [
-          { role: 'system', content: 'Be precise and concise. Include concrete facts. Provide 3-6 bullets with inline source URLs.' },
-          { role: 'user', content: `Research this topic and provide 3–6 highly factual bullets with inline citations (URLs):\n${topic}\nReturn markdown bullets that include the source URL in each bullet.` }
+          { role: 'system', content: 'Be precise and concise. Provide evidence-backed bullets with source URLs.' },
+          { role: 'user', content: `Research this topic and return STRICT JSON: {"bullets":[{"text": string, "urls": string[]}]}.\n- 3 to 6 bullets.\n- Each bullet MUST include at least one HTTP(S) URL in urls.\nTopic to research:\n${topic}` }
         ],
         temperature: 0.2,
         top_p: 0.9,
@@ -52,14 +52,21 @@ async function fetchPerplexityBrief(topic: string): Promise<string> {
     });
     if (!res.ok) {
       console.error('Perplexity enrich-insight error', await res.text());
-      return '';
+      return { bullets: [], raw: '' };
     }
     const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content?.trim() || '';
-    return text;
+    const content = data?.choices?.[0]?.message?.content?.trim() || '';
+    try {
+      const obj = JSON.parse(content);
+      if (Array.isArray(obj?.bullets)) {
+        return { bullets: obj.bullets, raw: content };
+      }
+    } catch {}
+    // Fallback: return as raw text to parse URLs later
+    return { bullets: [], raw: content };
   } catch (e) {
     console.error('Perplexity enrich-insight exception', e);
-    return '';
+    return { bullets: [], raw: '' };
   }
 }
 
@@ -100,9 +107,14 @@ serve(async (req) => {
     let sources: { title: string; url: string }[] = [];
 
     if (openAIApiKey) {
-      const system = `You are a senior startup validation coach. Apply Validation Masterclass & Startup Methodology (Lean Canvas, JTBD, Customer Forces). Return STRICT JSON: { "rationale": string, "sources": {"title": string, "url": string}[] }.`;
+      const evidenceBullets = brief.bullets.map((b) => `- ${b.text}`).join('\n');
+      const allowedUrls = Array.from(new Set([
+        ...brief.bullets.flatMap((b) => Array.isArray(b.urls) ? b.urls : []),
+        ...extractUrls(brief.raw)
+      ])).slice(0, 12);
+      const system = `You are a senior startup validation coach. Apply Validation Masterclass & Startup Methodology (Lean Canvas, JTBD, Customer Forces). Use ONLY the inputs and allowed sources. Return STRICT JSON: { "rationale": string, "sources": {"title": string, "url": string}[] }.`;
       const guidance = categoryGuidance(category);
-      const prompt = `Craft a deep rationale for this insight so a founder understands the why behind it.\n- Use evidence and causal reasoning.\n- Tie to forces (push, pull, inertia, friction) and measurable impact.\n- Avoid solution-speak; be customer-progress centric.\n- Write 1–2 concise paragraphs.\n\nInputs:\n${topic}\n\nWeb brief (may include URLs):\n${brief || '—'}\n\nExtract sources from the web brief URLs if present. If none, leave sources empty. Return JSON only.`;
+      const prompt = `Craft a deep rationale for this insight so a founder understands the why behind it.\n- Use evidence and causal reasoning.\n- Tie to forces (push, pull, inertia, friction) and measurable impact.\n- Avoid solution-speak; be customer-progress centric.\n- Write 1–2 concise paragraphs.\n\nInputs:\n${topic}\n\nEvidence bullets (from web):\n${evidenceBullets || '—'}\n\nAllowed sources (URLs):\n${allowedUrls.length ? allowedUrls.map((u,i)=>`[${i+1}] ${u}`).join('\n') : '(none)'}\n\nRequirements:\n- Base claims ONLY on the evidence and allowed sources above.\n- If evidence is insufficient, state limitations explicitly.\n- Output JSON only.`;
 
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -144,8 +156,8 @@ serve(async (req) => {
       rationale = `This insight indicates progress customers are trying to make within ${category}. It matters because it reveals the push (triggers), the pull (desired outcomes), and the inertia/frictions that keep current behavior in place. Clarifying this helps focus discovery on high-impact constraints and measurable value.`;
     }
 
-    if (!sources.length && brief) {
-      const urls = extractUrls(brief);
+    if (!sources.length && (brief.raw && brief.raw.length)) {
+      const urls = extractUrls(brief.raw);
       sources = urls.map((u) => ({ title: toTitleFromUrl(u), url: u })).slice(0, 5);
     }
 

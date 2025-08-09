@@ -30,7 +30,7 @@ async function fetchPerplexityForSection(idea: string, section: typeof sections[
     jobToBeDone: `LEVEL UP from the existing alternatives to infer the underlying progress customers seek. Avoid tool/solution words; focus on desired outcome, context, and triggers (push/pull/inertia/friction). Phrase as a single crisp JTBD statement.`,
   };
 
-  const content = `Do focused web scoping for section: [${section}].\nIdea: ${idea}\nMethodology cues: Lean Canvas, JTBD, Customer Forces Canvas. Be factual and specific.\nReturn a compact brief: max 5 bullets for this section only.`;
+  const content = `Do focused web scoping for section: [${section}].\nIdea: ${idea}\nMethodology cues: Lean Canvas, JTBD, Customer Forces Canvas. Be factual and specific.\nReturn a compact brief: max 5 bullets for this section only, and include an inline source URL in each bullet (http...) to ground facts.`;
 
   try {
     const res = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -40,7 +40,7 @@ async function fetchPerplexityForSection(idea: string, section: typeof sections[
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-small-online',
         messages: [
           { role: 'system', content: 'Be precise and concise. Cite concrete products, roles, and contexts. No filler.' },
           { role: 'user', content: instructionsBySection[section] + '\n\n' + content }
@@ -98,21 +98,14 @@ serve(async (req) => {
     const usedPerplexity = Object.values(researchBySection).some((v) => v && v.length > 0);
 
     async function synthesizeSection(section: typeof sections[number], research: string, count: number): Promise<string[]> {
-      const system = `You are a senior startup validation coach.
-- Apply Validation Masterclass & Startup Methodology: Lean Canvas, JTBD, Customer Forces (push, pull, inertia, friction).
-- Use provided research when available. Prefer concrete roles, tools, brands, and contexts.
-- Return STRICT JSON object: { "items": string[] } and nothing else.`;
+      const allowedUrls = Array.from(new Set((research.match(/https?:\/\/[^\s)\]]+/g) || []).slice(0, 25)));
+      const methodology = `Ground in our Startup Methodology: focus on customer progress (JTBD), Customer Forces (push, pull, inertia, friction), and avoid solution-speak.`;
+      const system = `You are a senior startup validation coach.\n- Apply Validation Masterclass & Startup Methodology: Lean Canvas, JTBD, Customer Forces (push, pull, inertia, friction).\n- Use ONLY facts explicitly present in the Inputs and (if provided) Allowed sources URLs.\n- If evidence is insufficient, output 'UNKNOWN' rather than guessing.\n- Return STRICT JSON object: { "items": string[] } and nothing else.`;
 
       const jtbdGuidelines = section === 'jobToBeDone' ? `\n- Derive by LEVELING UP from listed existing alternatives to the underlying progress sought\n- Abstract away tools/solutions; focus on desired outcome, trigger/context, anxieties/habits\n- Use format: "Help [segment] [achieve progress] when [situation], so they can [desired outcome] without [major friction]"\n- Produce ONE single-line JTBD (<= 140 chars)` : '';
 
-      const prompt = `Write ${count} crisp, concrete bullets for the section "${section}" for the idea below.
-Idea: ${idea}
-Inputs (may be empty):\n${research || 'None'}
-Guidelines:
-- ONE idea per bullet; avoid conjunctions
-- Avoid generic phrasing or placeholders
-- Align to JTBD and Forces where relevant${jtbdGuidelines}
-- If no research, reason from first principles in this domain`;
+      const prompt = `Write ${count} crisp, concrete bullets for the section "${section}" for the idea below.\nIdea: ${idea}\nMethodology: ${methodology}\nInputs (may be empty):\n${research || 'None'}\nAllowed sources (URLs):\n${allowedUrls.length ? allowedUrls.map((u,i)=>`[${i+1}] ${u}`).join('\n') : '(none)'}\nGuidelines:\n- ONE idea per bullet; avoid conjunctions\n- Avoid generic phrasing or placeholders\n- Align to JTBD and Forces where relevant${jtbdGuidelines}\n- If no research, reason from first principles but DO NOT invent facts beyond the inputs; if uncertain, write 'UNKNOWN'`;
+
 
       try {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
