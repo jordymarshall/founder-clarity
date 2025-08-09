@@ -27,7 +27,7 @@ async function fetchPerplexityForSection(idea: string, section: typeof sections[
     existingAlternatives: `List named tools, vendors, open-source projects, DIY workflows people use today. Include brand/tool names and brief why they are used.`,
     customerSegments: `Identify archetypes/roles/industries and environments. Include seniority bands or company sizes if relevant.`,
     earlyAdopters: `Pinpoint who feels the problem most acutely and experiments first; communities and contexts where early adoption happens.`,
-    jobToBeDone: `Describe desired outcomes and moments of progress; use JTBD language (switching trigger, desired outcome, anxieties, habits).`,
+    jobToBeDone: `LEVEL UP from the existing alternatives to infer the underlying progress customers seek. Avoid tool/solution words; focus on desired outcome, context, and triggers (push/pull/inertia/friction). Phrase as a single crisp JTBD statement.`,
   };
 
   const content = `Do focused web scoping for section: [${section}].\nIdea: ${idea}\nMethodology cues: Lean Canvas, JTBD, Customer Forces Canvas. Be factual and specific.\nReturn a compact brief: max 5 bullets for this section only.`;
@@ -103,13 +103,15 @@ serve(async (req) => {
 - Use provided research when available. Prefer concrete roles, tools, brands, and contexts.
 - Return STRICT JSON object: { "items": string[] } and nothing else.`;
 
+      const jtbdGuidelines = section === 'jobToBeDone' ? `\n- Derive by LEVELING UP from listed existing alternatives to the underlying progress sought\n- Abstract away tools/solutions; focus on desired outcome, trigger/context, anxieties/habits\n- Use format: "Help [segment] [achieve progress] when [situation], so they can [desired outcome] without [major friction]"\n- Produce ONE single-line JTBD (<= 140 chars)` : '';
+
       const prompt = `Write ${count} crisp, concrete bullets for the section "${section}" for the idea below.
 Idea: ${idea}
-Section-specific research (may be empty):\n${research || 'None'}
+Inputs (may be empty):\n${research || 'None'}
 Guidelines:
 - ONE idea per bullet; avoid conjunctions
 - Avoid generic phrasing or placeholders
-- Align to JTBD and Forces where relevant
+- Align to JTBD and Forces where relevant${jtbdGuidelines}
 - If no research, reason from first principles in this domain`;
 
       try {
@@ -148,9 +150,26 @@ Guidelines:
     const result: Record<string, string[]> = {};
     // Synthesize each section with research; retry once if generic/empty
     for (const sec of sections) {
-      const first = await synthesizeSection(sec, researchBySection[sec] || '', 4);
+      const isJTBD = sec === 'jobToBeDone';
+      const count = isJTBD ? 1 : 4;
+      // For JTBD, combine prior sections to explicitly level up from alternatives
+      const combinedResearch = isJTBD
+        ? (() => {
+            const parts: string[] = [];
+            parts.push(researchBySection[sec] || '');
+            parts.push('Existing alternatives (for leveling up):');
+            (result.existingAlternatives || []).forEach((b) => parts.push(`- ${b}`));
+            parts.push('Customer segments (who):');
+            (result.customerSegments || []).forEach((b) => parts.push(`- ${b}`));
+            parts.push('Core problems (context/triggers):');
+            (result.problem || []).forEach((b) => parts.push(`- ${b}`));
+            return parts.join('\n');
+          })()
+        : (researchBySection[sec] || '');
+
+      const first = await synthesizeSection(sec, combinedResearch, count);
       if (!first.length || isGeneric(first)) {
-        const second = await synthesizeSection(sec, researchBySection[sec] || '', 5);
+        const second = await synthesizeSection(sec, combinedResearch, count);
         result[sec] = second.length ? second : first;
       } else {
         result[sec] = first;

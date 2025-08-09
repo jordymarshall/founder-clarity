@@ -417,7 +417,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
       ...push(initialData.existingAlternatives, 'alternatives'),
       ...push(initialData.customerSegments, 'segments'),
       ...push(initialData.earlyAdopters, 'early-adopters'),
-      ...push(initialData.jobToBeDone, 'job-to-be-done'),
+      ...push((initialData.jobToBeDone || []).slice(0, 1), 'job-to-be-done'),
     ];
     if (seeded.length) setBlocks(seeded);
   }, [initialData, blocks.length]);
