@@ -30,7 +30,7 @@ import { Plus, Edit2, Check, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle as DialogHeading, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-
+import { supabase } from '@/integrations/supabase/client';
 interface InsightBlock {
   id: string;
   category: 'problem' | 'alternatives' | 'segments' | 'early-adopters' | 'job-to-be-done';
@@ -399,6 +399,8 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [detailBlock, setDetailBlock] = useState<InsightBlock | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailData, setDetailData] = useState<{ rationale: string; sources: { title: string; url: string }[] } | null>(null);
   const isLoading = !initialData || blocks.length === 0;
 
   // Seed with initialData once
@@ -428,6 +430,46 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   }, [blocks, onBlocksChange]);
 
 // Keep loading until initial data arrives and blocks are populated
+
+  React.useEffect(() => {
+    let aborted = false;
+    if (!detailBlock) {
+      setDetailData(null);
+      setDetailLoading(false);
+      return;
+    }
+    setDetailLoading(true);
+    setDetailData(null);
+    const ctx = {
+      problem: blocks.filter(b => b.category === 'problem').map(b => b.content),
+      existingAlternatives: blocks.filter(b => b.category === 'alternatives').map(b => b.content),
+      customerSegments: blocks.filter(b => b.category === 'segments').map(b => b.content),
+      earlyAdopters: blocks.filter(b => b.category === 'early-adopters').map(b => b.content),
+      jobToBeDone: blocks.filter(b => b.category === 'job-to-be-done').map(b => b.content),
+    };
+    supabase.functions.invoke('enrich-insight', {
+      body: {
+        idea,
+        block: { category: detailBlock.category, content: detailBlock.content },
+        context: ctx,
+      }
+    }).then(({ data, error }) => {
+      if (aborted) return;
+      if (error) {
+        console.error('enrich-insight error', error);
+        setDetailData({
+          rationale:
+            'This insight matters because it affects customer progress in this area. Expand with specific context and Customer Forces (push, pull, inertia, friction).',
+          sources: [],
+        });
+      } else {
+        setDetailData(data?.data || null);
+      }
+    }).finally(() => {
+      if (!aborted) setDetailLoading(false);
+    });
+    return () => { aborted = true; };
+  }, [detailBlock, blocks, idea]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -627,7 +669,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
       )}
 
       {/* Details Dialog */}
-      <Dialog open={!!detailBlock} onOpenChange={(open) => { if (!open) setDetailBlock(null) }}>
+      <Dialog open={!!detailBlock} onOpenChange={(open) => { if (!open) { setDetailBlock(null); setDetailData(null); setDetailLoading(false); } }}>
         <DialogContent className="max-w-lg animate-fade-in">
           <DialogHeader>
             <DialogHeading className="text-lg font-semibold break-words whitespace-pre-wrap !leading-snug">
@@ -637,20 +679,53 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
               {detailBlock ? categoryConfig[detailBlock.category].label : ''}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {detailBlock?.content || 'No additional details.'}
-            </div>
-            {/* Placeholder sections for rationale and sources if needed */}
-            {/* <div>
-              <h4 className="text-sm font-medium mb-1">Rationale</h4>
-              <p className="text-sm text-muted-foreground">—</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium mb-1">Sources</h4>
-              <p className="text-sm text-muted-foreground">—</p>
-            </div> */}
+
+          <div className="space-y-5">
+            <section>
+              <h4 className="text-sm font-medium mb-2">Insight</h4>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                {detailBlock?.content || 'No additional details.'}
+              </div>
+            </section>
+
+            <section>
+              <h4 className="text-sm font-medium mb-2">Rationale</h4>
+              {detailLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-11/12" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {detailData?.rationale || '—'}
+                </p>
+              )}
+            </section>
+
+            <section>
+              <h4 className="text-sm font-medium mb-2">Sources</h4>
+              {detailLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-3/5" />
+                  <Skeleton className="h-4 w-2/5" />
+                </div>
+              ) : detailData?.sources && detailData.sources.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-1">
+                  {detailData.sources.map((s, i) => (
+                    <li key={i} className="text-sm">
+                      <a href={s.url} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+                        {s.title || s.url}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">—</p>
+              )}
+            </section>
           </div>
+
           <DialogFooter>
             {detailBlock && (
               <Button
@@ -658,12 +733,13 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 onClick={() => {
                   setEditingId(detailBlock.id);
                   setDetailBlock(null);
+                  setDetailData(null);
                 }}
               >
                 Edit
               </Button>
             )}
-            <Button onClick={() => setDetailBlock(null)}>Close</Button>
+            <Button onClick={() => { setDetailBlock(null); setDetailData(null); }}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
