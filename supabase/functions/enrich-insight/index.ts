@@ -36,7 +36,7 @@ async function fetchPerplexityBrief(topic: string): Promise<{ bullets: { text: s
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar-small-online',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           { role: 'system', content: 'Be precise and concise. Provide evidence-backed bullets with source URLs.' },
           { role: 'user', content: `Research this topic and return STRICT JSON: {"bullets":[{"text": string, "urls": string[]}]}.\n- 3 to 6 bullets.\n- Each bullet MUST include at least one HTTP(S) URL in urls.\nTopic to research:\n${topic}` }
