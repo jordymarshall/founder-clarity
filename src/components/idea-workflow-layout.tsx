@@ -5,7 +5,7 @@ import { InterviewScriptScreen } from '@/components/interview-script-screen';
 import { EvidenceTab } from '@/components/evidence-tab';
 import { HypothesisCanvas } from '@/components/hypothesis-canvas';
 import { SynthesisCanvas } from '@/components/synthesis-canvas';
-import { DeconstructFlowCanvas } from '@/components/deconstruct-flow-canvas';
+import { DeconstructCanvas } from '@/components/deconstruct-canvas';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -91,7 +91,7 @@ export function IdeaWorkflowLayout({ idea, onBack }: IdeaWorkflowLayoutProps) {
                 <h2 className="text-xl font-semibold">Module 1: Idea Deconstruction</h2>
                 <p className="text-muted-foreground">Break down your idea into core components</p>
               </div>
-              <DeconstructFlowCanvas 
+              <DeconstructCanvas 
                 idea={idea} 
                 initialData={initialDeconstruct || undefined}
                 onBlocksChange={(b) => setCanvasCards(b)}

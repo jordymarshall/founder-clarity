@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
-import { DeconstructBoard } from "@/components/deconstruct-board";
+import { DeconstructCanvas } from "@/components/deconstruct-canvas";
 
 function useIdeaFromParam() {
   const { ideaSlug } = useParams();
@@ -12,14 +12,14 @@ export default function Deconstruct() {
   const idea = useIdeaFromParam();
 
   useEffect(() => {
-    document.title = `${idea} — Deconstruction | startupblocks`;
+    document.title = `${idea} — Deconstruction | StartupDetective`;
   }, [idea]);
 
   return (
     <AppLayout>
       <section aria-labelledby="page-title">
         <h1 id="page-title" className="text-2xl font-semibold mb-4">Deconstruction Canvas</h1>
-        <DeconstructBoard idea={idea} />
+        <DeconstructCanvas idea={idea} />
       </section>
     </AppLayout>
   );
