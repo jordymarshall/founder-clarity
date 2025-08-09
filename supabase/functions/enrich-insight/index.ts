@@ -105,6 +105,7 @@ serve(async (req) => {
 
     let rationale = '';
     let sources: { title: string; url: string }[] = [];
+    let structured: any = null;
 
     if (openAIApiKey) {
       const evidenceBullets = brief.bullets.map((b) => `- ${b.text}`).join('\n');
@@ -112,9 +113,9 @@ serve(async (req) => {
         ...brief.bullets.flatMap((b) => Array.isArray(b.urls) ? b.urls : []),
         ...extractUrls(brief.raw)
       ])).slice(0, 12);
-      const system = `You are a senior startup validation coach. Apply Validation Masterclass & Startup Methodology (Lean Canvas, JTBD, Customer Forces). Use ONLY the inputs and allowed sources. Return STRICT JSON: { "rationale": string, "sources": {"title": string, "url": string}[] }.`;
+      const system = `You are a senior startup validation coach. Apply our Startup Methodology (Lean Canvas, JTBD, Customer Forces).\nReturn STRICT JSON only with this schema:\n{\n  "rationale": string,\n  "sources": {"title": string, "url": string}[],\n  "structure": {\n    "context": string,\n    "forces": {"push": string[], "pull": string[], "inertia": string[], "friction": string[]},\n    "evidence": {"text": string, "urls": string[]}[],\n    "implications": string[],\n    "conclusion": string\n  }\n}`;
       const guidance = categoryGuidance(category);
-      const prompt = `Craft a deep rationale for this insight so a founder understands the why behind it.\n- Use evidence and causal reasoning.\n- Tie to forces (push, pull, inertia, friction) and measurable impact.\n- Avoid solution-speak; be customer-progress centric.\n- Write 1–2 concise paragraphs.\n\nInputs:\n${topic}\n\nEvidence bullets (from web):\n${evidenceBullets || '—'}\n\nAllowed sources (URLs):\n${allowedUrls.length ? allowedUrls.map((u,i)=>`[${i+1}] ${u}`).join('\n') : '(none)'}\n\nRequirements:\n- Base claims ONLY on the evidence and allowed sources above.\n- If evidence is insufficient, state limitations explicitly.\n- Output JSON only.`;
+      const prompt = `We are evaluating an insight within the category: ${category}. ${guidance}\n\nTask:\n- Write a clear, structured rationale that explains the WHY behind the insight.\n- Populate the Customer Forces (push/pull/inertia/friction) with short bullet phrases.\n- Use ONLY the inputs and allowed sources. Do not invent facts.\n- If evidence is thin, state the limitation in context and keep forces minimal.\n\nInputs:\n${topic}\n\nEvidence bullets (from web):\n${evidenceBullets || '—'}\n\nAllowed sources (URLs):\n${allowedUrls.length ? allowedUrls.map((u,i)=>`[${i+1}] ${u}`).join('\n') : '(none)'}\n\nOutput requirements:\n- rationale: 1–2 concise paragraphs, customer-progress centric\n- structure.context: one paragraph summarizing the situation and who/when\n- structure.forces: arrays of short phrases (2–4 each when evidence supports)\n- structure.evidence: reference the specific URLs used per bullet\n- structure.implications: 2–4 practical takeaways for discovery/validation\n- structure.conclusion: a single, crisp sentence that captures the essence`;
 
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -143,7 +144,10 @@ serve(async (req) => {
             sources = obj.sources
               .filter((s: any) => s && typeof s.url === 'string')
               .map((s: any) => ({ title: (s.title || '').toString().slice(0, 140) || toTitleFromUrl(s.url), url: s.url }))
-              .slice(0, 8);
+              .slice(0, 12);
+          }
+          if (obj?.structure && typeof obj.structure === 'object') {
+            structured = obj.structure;
           }
         } catch {}
       } else {
@@ -161,7 +165,17 @@ serve(async (req) => {
       sources = urls.map((u) => ({ title: toTitleFromUrl(u), url: u })).slice(0, 5);
     }
 
-    return new Response(JSON.stringify({ success: true, data: { rationale, sources } }), {
+    if (!structured) {
+      structured = {
+        context: `Context not fully established; evidence limited.`,
+        forces: { push: [], pull: [], inertia: [], friction: [] },
+        evidence: (brief.bullets || []).slice(0, 4).map((b: any) => ({ text: b.text || '', urls: Array.isArray(b.urls) ? b.urls : [] })),
+        implications: [],
+        conclusion: ''
+      };
+    }
+
+    return new Response(JSON.stringify({ success: true, data: { rationale, sources, structure: structured } }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

@@ -93,7 +93,7 @@ serve(async (req) => {
 
     const { idea } = await req.json();
 
-    // Web-informed scoping per section via Perplexity (optional)
+    // Web-informed scoping per section via Perplexity (optional, with citations)
     const researchBySection = await fetchPerplexityAll(idea);
     const usedPerplexity = Object.values(researchBySection).some((v) => v && v.length > 0);
 

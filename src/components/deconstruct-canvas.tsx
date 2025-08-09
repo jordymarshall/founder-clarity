@@ -400,7 +400,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
   const [activeId, setActiveId] = useState<string | null>(null);
   const [detailBlock, setDetailBlock] = useState<InsightBlock | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [detailData, setDetailData] = useState<{ rationale: string; sources: { title: string; url: string }[] } | null>(null);
+  const [detailData, setDetailData] = useState<{ rationale: string; sources: { title: string; url: string }[]; structure?: { context?: string; forces?: { push?: string[]; pull?: string[]; inertia?: string[]; friction?: string[] }; evidence?: { text: string; urls: string[] }[]; implications?: string[]; conclusion?: string } } | null>(null);
   const isLoading = !initialData || blocks.length === 0;
 
   // Seed with initialData once
@@ -461,6 +461,7 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
           rationale:
             'This insight matters because it affects customer progress in this area. Expand with specific context and Customer Forces (push, pull, inertia, friction).',
           sources: [],
+          structure: undefined,
         });
       } else {
         setDetailData(data?.data || null);
@@ -688,6 +689,37 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
               </div>
             </section>
 
+            {detailData?.structure?.context && (
+              <section>
+                <h4 className="text-sm font-medium mb-2">Context</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {detailData.structure.context}
+                </p>
+              </section>
+            )}
+
+            {detailData?.structure?.forces && (
+              <section>
+                <h4 className="text-sm font-medium mb-2">Customer Forces</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {(['push','pull','inertia','friction'] as const).map((k) => (
+                    <div key={k}>
+                      <div className="text-xs font-medium mb-1 capitalize">{k}</div>
+                      {detailLoading ? (
+                        <Skeleton className="h-4 w-4/5" />
+                      ) : (
+                        <ul className="list-disc pl-4 space-y-1">
+                          {(detailData.structure?.forces?.[k] || []).map((t, i) => (
+                            <li key={i} className="text-xs text-muted-foreground">{t}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section>
               <h4 className="text-sm font-medium mb-2">Rationale</h4>
               {detailLoading ? (
@@ -702,6 +734,44 @@ export function DeconstructCanvas({ className, idea, initialData, onBlocksChange
                 </p>
               )}
             </section>
+
+            {detailData?.structure?.evidence && detailData.structure.evidence.length > 0 && (
+              <section>
+                <h4 className="text-sm font-medium mb-2">Evidence</h4>
+                <ul className="space-y-2">
+                  {detailData.structure.evidence.map((evi, i) => (
+                    <li key={i} className="text-sm">
+                      <div className="text-muted-foreground">{evi.text}</div>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {(evi.urls || []).map((u, j) => (
+                          <a key={j} href={u} target="_blank" rel="noreferrer" className="text-xs underline underline-offset-2">
+                            {new URL(u).hostname.replace(/^www\./,'')}
+                          </a>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {detailData?.structure?.implications && detailData.structure.implications.length > 0 && (
+              <section>
+                <h4 className="text-sm font-medium mb-2">Implications</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  {detailData.structure.implications.map((t, i) => (
+                    <li key={i} className="text-sm text-muted-foreground">{t}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {detailData?.structure?.conclusion && (
+              <section>
+                <h4 className="text-sm font-medium mb-2">Conclusion</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detailData.structure.conclusion}</p>
+              </section>
+            )}
 
             <section>
               <h4 className="text-sm font-medium mb-2">Sources</h4>
