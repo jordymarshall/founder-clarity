@@ -84,7 +84,15 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
       collapsible="icon"
     >
       <SidebarHeader className="">
-        <div className={`flex w-full items-center gap-2 ${collapsed ? 'justify-center px-0 py-2 mt-2' : 'justify-start px-3 py-2 mt-2'}`}>
+        <div
+          className={`flex w-full items-center gap-2 cursor-pointer ${collapsed ? 'justify-center px-0 py-2 mt-2' : 'justify-start px-3 py-2 mt-2'}`}
+          role="button"
+          aria-label="Go to Ideas Hub"
+          onClick={() => {
+            window.dispatchEvent(new Event('open-ideas-hub'))
+            navigate('/')
+          }}
+        >
           <div className="w-7 h-7 bg-sidebar-primary rounded flex items-center justify-center">
             <Glasses className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
@@ -105,7 +113,11 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
                   isActive={isActive(item.url)}
                   className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                 >
-                  <NavLink to={item.url} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                  <NavLink
+                    to={item.url}
+                    onClick={() => window.dispatchEvent(new Event('open-ideas-hub'))}
+                    className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}
+                  >
                     <item.icon className="w-4 h-4" />
                     {!collapsed && <span>{item.title}</span>}
                   </NavLink>
