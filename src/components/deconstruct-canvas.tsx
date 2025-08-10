@@ -310,7 +310,7 @@ export function DeconstructCanvas({
   React.useEffect(() => {
     if (!initialData) return;
     if (blocks.length > 0) return;
-    const push = (arr: string[] | undefined, category: InsightBlock['category']) => (arr || []).slice(0, 5).map((text, idx) => ({
+    const push = (arr: string[] | undefined, category: InsightBlock['category']) => (arr || []).slice(0, 3).map((text, idx) => ({
       id: `${category}-${Date.now()}-${idx}`,
       category,
       title: text.split(':')[0]?.slice(0, 48) || 'Insight',
@@ -377,6 +377,11 @@ export function DeconstructCanvas({
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
   }));
+  const toBullets = (text: string) =>
+    (text || '')
+      .split(/\n|\u2022|\-|\u2013|\u2014|\.|;|•/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   }, []);
@@ -534,32 +539,31 @@ export function DeconstructCanvas({
 
             {detailData?.structure?.context && <section>
                 <h4 className="text-sm font-medium mb-2">Context</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {detailData.structure.context}
-                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                  {toBullets(detailData.structure.context).map((t, i) => (
+                    <li key={i}>{t}</li>
+                  ))}
+                </ul>
               </section>}
 
-            {detailData?.structure?.forces && <section>
-                <h4 className="text-sm font-medium mb-2">Customer Forces</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(['push', 'pull', 'inertia', 'friction'] as const).map(k => <div key={k}>
-                      <div className="text-xs font-medium mb-1 capitalize">{k}</div>
-                      {detailLoading ? <Skeleton className="h-4 w-4/5" /> : <ul className="list-disc pl-4 space-y-1">
-                          {(detailData.structure?.forces?.[k] || []).map((t, i) => <li key={i} className="text-xs text-muted-foreground">{t}</li>)}
-                        </ul>}
-                    </div>)}
-                </div>
-              </section>}
 
             <section>
               <h4 className="text-sm font-medium mb-2">Rationale</h4>
-              {detailLoading ? <div className="space-y-2">
+              {detailLoading ? (
+                <div className="space-y-2">
                   <Skeleton className="h-4 w-5/6" />
                   <Skeleton className="h-4 w-11/12" />
                   <Skeleton className="h-4 w-2/3" />
-                </div> : <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {detailData?.rationale || '—'}
-                </p>}
+                </div>
+              ) : detailData?.rationale ? (
+                <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                  {toBullets(detailData.rationale).map((t, i) => (
+                    <li key={i}>{t}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">—</p>
+              )}
             </section>
 
             {detailData?.structure?.evidence && detailData.structure.evidence.length > 0 && <section>
@@ -588,19 +592,6 @@ export function DeconstructCanvas({
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detailData.structure.conclusion}</p>
               </section>}
 
-            <section>
-              <h4 className="text-sm font-medium mb-2">Sources</h4>
-              {detailLoading ? <div className="space-y-2">
-                  <Skeleton className="h-4 w-3/5" />
-                  <Skeleton className="h-4 w-2/5" />
-                </div> : detailData?.sources && detailData.sources.length > 0 ? <ul className="list-disc pl-5 space-y-1">
-                  {detailData.sources.map((s, i) => <li key={i} className="text-sm">
-                      <a href={s.url} target="_blank" rel="noreferrer" className="underline underline-offset-2">
-                        {s.title || s.url}
-                      </a>
-                    </li>)}
-                </ul> : <p className="text-sm text-muted-foreground">—</p>}
-            </section>
           </div>
 
           <DialogFooter className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-3">
