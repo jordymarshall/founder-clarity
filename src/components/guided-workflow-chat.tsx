@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,14 +10,17 @@ import { SynthesisCanvas } from "@/components/synthesis-canvas";
 import { InterviewUpload } from "@/components/interview-upload";
 import { supabase } from "@/integrations/supabase/client";
 
+type EmbedKind = "deconstruct" | "find-people" | "interview" | "upload" | "synthesis";
+interface ChatEmbed { kind: EmbedKind }
 interface ChatMessage {
   id: string;
   role: "coach" | "user";
   content: string;
+  embed?: ChatEmbed;
 }
 
 interface Step {
-  id: string;
+  id: EmbedKind;
   title: string;
   question: string;
   render: (idea: string) => React.ReactNode;
@@ -143,6 +146,47 @@ export function GuidedWorkflowChat() {
     },
   ], [hypothesisFromDeconstruction]);
 
+  // Embeds rendering within chat
+  const hasEmbed = useCallback((kind: EmbedKind) => messages.some(m => m.embed?.kind === kind), [messages]);
+  const EmbedView = ({ kind }: { kind: EmbedKind }) => {
+    switch (kind) {
+      case "deconstruct":
+        return (
+          <DeconstructCanvas
+            idea={idea || "Untitled Idea"}
+            initialData={initialHypothesis || undefined}
+            onBlocksChange={setDeconstructBlocks}
+          />
+        );
+      case "find-people":
+        return (
+          <EvidenceTab
+            idea={idea || "Untitled Idea"}
+            customerSegment={hypothesisFromDeconstruction.customerSegment}
+            coreProblem={hypothesisFromDeconstruction.coreProblem}
+            jobToBeDone={hypothesisFromDeconstruction.jobToBeDone}
+            existingAlternatives={hypothesisFromDeconstruction.existingAlternatives}
+          />
+        );
+      case "interview":
+        return (
+          <InvestigationCanvas
+            idea={idea || "Untitled Idea"}
+            initialCustomerSegment={hypothesisFromDeconstruction.customerSegment.content?.[0]?.text}
+            initialProblem={hypothesisFromDeconstruction.coreProblem.content?.[0]?.text}
+            initialAlternatives={hypothesisFromDeconstruction.existingAlternatives.content?.[0]?.text}
+            initialJTBD={hypothesisFromDeconstruction.jobToBeDone.content?.[0]?.text}
+          />
+        );
+      case "upload":
+        return <InterviewUpload idea={idea || "Untitled Idea"} />;
+      case "synthesis":
+        return <SynthesisCanvas />;
+      default:
+        return null;
+    }
+  };
+
   // Initial messages are provided via initial state to avoid StrictMode duplicate inserts
 
   useEffect(() => {
@@ -185,15 +229,19 @@ export function GuidedWorkflowChat() {
   // Ensure the current step's question appears as part of the chat timeline
   useEffect(() => {
     if (!atIntro) {
-      const hasQuestion = messages.some(
-        (m) => m.role === "coach" && m.content === currentStep.question
-      );
+      const hasQuestion = messages.some((m) => m.role === "coach" && m.content === currentStep.question);
       if (!hasQuestion) {
         appendCoach(currentStep.question);
       }
+      if (!hasEmbed(currentStep.id)) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "coach", content: "", embed: { kind: currentStep.id } },
+        ]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex]);
+  }, [stepIndex, atIntro, currentStep.id, messages]);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -214,6 +262,12 @@ export function GuidedWorkflowChat() {
       appendCoach(`Great – we’ll call it “${text}”. Let’s start with ${steps[0].title}.`);
       setStepIndex(0);
       appendCoach(steps[0].question);
+      if (!hasEmbed('deconstruct')) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: 'deconstruct' } },
+        ]);
+      }
     } else if (currentStep.id === 'deconstruct') {
       // Ask AI to refine the hypothesis draft; keep user on this step
       try {
@@ -252,6 +306,12 @@ export function GuidedWorkflowChat() {
       const next = stepIndex + 1;
       setStepIndex(next);
       appendCoach(`Moving to ${steps[next].title}. ${steps[next].question}`);
+      if (!hasEmbed(steps[next].id)) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: steps[next].id } },
+        ]);
+      }
     } else {
       appendCoach("You’ve reached the end of the guided flow. Great work!");
     }
@@ -263,77 +323,63 @@ export function GuidedWorkflowChat() {
       setStepIndex(prevIndex);
       appendCoach(`Back to ${steps[prevIndex].title}.`);
       appendCoach(steps[prevIndex].question);
+      if (!hasEmbed(steps[prevIndex].id)) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: steps[prevIndex].id } },
+        ]);
+      }
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-      {/* Chat Column */}
-      <section aria-label="Coach chat" className="border rounded-lg bg-background">
-        <header className="flex items-center gap-2 p-4 border-b">
-          <Sparkles className="w-4 h-4 text-muted-foreground" />
-          <h2 className="text-sm font-medium">Coach</h2>
-          <div className="ml-auto flex items-center gap-2">
-            {idea && <span className="text-xs text-muted-foreground">Idea: {idea}</span>}
-            <Button variant="ghost" size="sm" onClick={resetFlow} aria-label="Reset coach">Reset</Button>
-          </div>
-        </header>
+    <section aria-label="Coach chat" className="border rounded-lg bg-background">
+      <header className="flex items-center gap-2 p-4 border-b">
+        <Sparkles className="w-4 h-4 text-muted-foreground" />
+        <h2 className="text-sm font-medium">Coach</h2>
+        <div className="ml-auto flex items-center gap-2">
+          {idea && <span className="text-xs text-muted-foreground">Idea: {idea}</span>}
+          {isWorking && <span className="text-xs text-muted-foreground">AI working…</span>}
+          <Button variant="ghost" size="sm" onClick={resetFlow} aria-label="Reset coach">Reset</Button>
+        </div>
+      </header>
 
-        <ScrollArea className="h-[360px] p-4" ref={scrollRef}>
-          <div className="space-y-3">
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[320px] rounded px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground ml-8" : "bg-muted text-foreground mr-8"}`}>
-                  {m.content}
+      <ScrollArea className="h-[600px] p-4" ref={scrollRef}>
+        <div className="space-y-4">
+          {messages.map((m) => (
+            <div key={m.id} className="space-y-2">
+              {m.content && (
+                <div className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[640px] rounded px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground ml-8" : "bg-muted text-foreground mr-8"}`}>
+                    {m.content}
+                  </div>
                 </div>
-              </div>
-            ))}
-
-          </div>
-        </ScrollArea>
-
-        {/* Input */}
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <Input
-              placeholder={atIntro ? "Name your idea…" : "Reply to your coach…"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1"
-              aria-label="Chat message"
-            />
-            <Button onClick={sendMessage} size="sm" aria-label="Send message">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Embedded Step Column */}
-      <section aria-label="Embedded step" className="border rounded-lg bg-background flex flex-col">
-        <header className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-medium">Step {stepIndex + 1} of {steps.length}: {currentStep.title}</h2>
-              <p className="text-xs text-muted-foreground">Complete this step, then continue.</p>
+              )}
+              {m.embed && (
+                <div className="rounded-lg border bg-background p-3">
+                  <EmbedView kind={m.embed.kind} />
+                </div>
+              )}
             </div>
-            <div className="flex gap-2 items-center">
-              {isWorking && <span className="text-xs text-muted-foreground">AI working…</span>}
-              <Button variant="secondary" size="sm" onClick={goBack} disabled={stepIndex === 0} aria-label="Previous step">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button size="sm" onClick={goNext} aria-label="Next step">
-                <span className="mr-1">Next</span>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </header>
-        <div className="flex-1 p-4 overflow-auto">
-          {currentStep.render(idea || "Untitled Idea")}
+          ))}
         </div>
-      </section>
-    </div>
+      </ScrollArea>
+
+      <div className="p-4 border-t">
+        <div className="flex gap-2">
+          <Input
+            placeholder={atIntro ? "Name your idea…" : "Reply to your coach…"}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            className="flex-1"
+            aria-label="Chat message"
+          />
+          <Button onClick={sendMessage} size="sm" aria-label="Send message">
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }

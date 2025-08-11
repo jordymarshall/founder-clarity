@@ -49,7 +49,7 @@ Make the rationale evidence-based with specific details, statistics, or research
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are an expert startup strategist and market analyst. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
