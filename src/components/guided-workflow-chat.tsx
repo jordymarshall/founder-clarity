@@ -55,6 +55,7 @@ export function GuidedWorkflowChat() {
   const [answers, setAnswers] = usePersistentState<Record<string, string>>("guided.answers", {});
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
 
   const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
@@ -190,7 +191,7 @@ export function GuidedWorkflowChat() {
   // Initial messages are provided via initial state to avoid StrictMode duplicate inserts
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
   // Seed Deconstruction via AI when idea is set
@@ -285,6 +286,12 @@ export function GuidedWorkflowChat() {
               jobToBeDone: d.jobToBeDone || [],
             });
             appendCoach("Updated the canvas draft. Edit anything that looks off, then type ‘next’. ");
+            if (!hasEmbed('deconstruct')) {
+              setMessages((prev) => [
+                ...prev,
+                { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: 'deconstruct' } },
+              ]);
+            }
           } else {
             appendCoach("Couldn’t refine right now. Continue editing manually and type ‘next’ when ready.");
           }
@@ -344,7 +351,7 @@ export function GuidedWorkflowChat() {
         </div>
       </header>
 
-      <ScrollArea className="h-[600px] p-4" ref={scrollRef}>
+      <ScrollArea className="h-[600px] p-4">
         <div className="space-y-4">
           {messages.map((m) => (
             <div key={m.id} className="space-y-2">
@@ -362,6 +369,7 @@ export function GuidedWorkflowChat() {
               )}
             </div>
           ))}
+          <div ref={bottomRef} aria-hidden="true" />
         </div>
       </ScrollArea>
 
