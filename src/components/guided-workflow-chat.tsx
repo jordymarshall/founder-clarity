@@ -226,6 +226,7 @@ export function GuidedWorkflowChat() {
 
   const atIntro = idea.trim().length === 0;
   const currentStep = steps[stepIndex] ?? steps[0];
+  const atLastStep = stepIndex >= steps.length - 1;
 
   // Ensure the current step's question appears as part of the chat timeline
   useEffect(() => {
@@ -347,6 +348,27 @@ export function GuidedWorkflowChat() {
         <div className="ml-auto flex items-center gap-2">
           {idea && <span className="text-xs text-muted-foreground">Idea: {idea}</span>}
           {isWorking && <span className="text-xs text-muted-foreground">AI working…</span>}
+          {!atIntro && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goBack}
+                disabled={stepIndex === 0}
+                aria-label="Back"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Back
+              </Button>
+              <Button
+                size="sm"
+                onClick={goNext}
+                disabled={isWorking}
+                aria-label="Next"
+              >
+                {atLastStep ? "Finish" : "Next"} <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </>
+          )}
           <Button variant="ghost" size="sm" onClick={resetFlow} aria-label="Reset coach">Reset</Button>
         </div>
       </header>
