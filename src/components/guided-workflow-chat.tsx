@@ -149,16 +149,33 @@ export function GuidedWorkflowChat() {
 
   // Embeds rendering within chat
   const hasEmbed = useCallback((kind: EmbedKind) => messages.some(m => m.embed?.kind === kind), [messages]);
+
+  const LoadingEmbed = () => (
+    <div className="h-64 rounded-md border border-border bg-muted/20 animate-fade-in" aria-label="Loading embed" />
+  );
+
+  const TypingBubble = () => (
+    <div className="flex justify-start">
+      <div className="max-w-[640px] rounded px-3 py-2 text-sm bg-muted text-foreground mr-8">
+        <span className="animate-pulse">Thinking…</span>
+      </div>
+    </div>
+  );
+
   const EmbedView = ({ kind }: { kind: EmbedKind }) => {
     switch (kind) {
-      case "deconstruct":
-        return (
+      case "deconstruct": {
+        const loading = (!initialHypothesis && deconstructBlocks.length === 0) && isWorking;
+        return loading ? (
+          <LoadingEmbed />
+        ) : (
           <DeconstructCanvas
             idea={idea || "Untitled Idea"}
             initialData={initialHypothesis || undefined}
             onBlocksChange={setDeconstructBlocks}
           />
         );
+      }
       case "find-people":
         return (
           <EvidenceTab
@@ -200,7 +217,7 @@ export function GuidedWorkflowChat() {
       if (!idea || initialHypothesis || isWorking) return;
       try {
         setIsWorking(true);
-        appendCoach("I’m drafting your hypothesis canvas based on your idea…");
+        // Showing typing bubble instead of static drafting message
         const { data, error } = await supabase.functions.invoke('initialize-idea', { body: { idea } });
         if (error) {
           console.error('initialize-idea error', error);
@@ -302,7 +319,7 @@ export function GuidedWorkflowChat() {
       try {
         if (!isWorking) {
           setIsWorking(true);
-          appendCoach("Refining your hypothesis with AI…");
+          // Showing typing bubble instead of static refining message
           const { data, error } = await supabase.functions.invoke('initialize-idea', { body: { idea } });
           if (!error && data?.data) {
             const d = data.data;
@@ -418,6 +435,7 @@ export function GuidedWorkflowChat() {
               )}
             </div>
           ))}
+          {isWorking && <TypingBubble />}
           <div ref={bottomRef} aria-hidden="true" />
         </div>
       </ScrollArea>
