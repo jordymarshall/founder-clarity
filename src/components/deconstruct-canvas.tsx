@@ -377,11 +377,24 @@ export function DeconstructCanvas({
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
   }));
-  const toBullets = (text: string) =>
-    (text || '')
-      .split(/\n|\u2022|\-|\u2013|\u2014|\.|;|•/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+  const toBullets = (text: string) => {
+    const t = (text || '').trim();
+    if (!t) return [];
+    // Split by lines; prefer explicit list markers only
+    const lines = t.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const hasMarkers = lines.some(l => /^[\u2022•\-–—]\s+/.test(l));
+    if (hasMarkers) {
+      return lines
+        .map(l => l.replace(/^[\u2022•\-–—]\s+/, '').trim())
+        .filter(Boolean);
+    }
+    // If bullets are inline using • character
+    if (/[•\u2022]/.test(t)) {
+      return t.split(/[•\u2022]+/).map(s => s.trim()).filter(Boolean);
+    }
+    // Fallback: keep as a single bullet (do NOT split on periods or hyphens)
+    return [t];
+  };
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   }, []);
