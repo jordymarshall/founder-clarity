@@ -32,9 +32,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { IdeaSelectDialog } from "@/components/idea-select-dialog"
+import { useIdeas } from "@/hooks/use-ideas"
 
 const mainItems = [
-  { title: "Ideas Hub", url: "/ideas", icon: Home },
+  { title: "New Idea", url: "/ideas", icon: Home },
   { title: "Guided Workflow", url: "/coach", icon: MessageSquare },
 ]
 
@@ -61,6 +62,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
   const location = useLocation()
   const navigate = useNavigate()
   const currentPath = location.pathname
+  const { ideas } = useIdeas()
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "canvas-tools": true,
   })
@@ -146,66 +148,41 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
           </SidebarMenu>
         </SidebarGroup>
 
-        {/* Workspace Section */}
+        {/* Ideas Section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-muted text-xs font-medium">
-            {!collapsed && "Workspace"}
+            {!collapsed && "Ideas"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {workspaceItems.map((item) => {
-                if (item.items) {
-                  const groupKey = item.title.toLowerCase().replace(/\s+/g, '-')
-                  const isOpen = openGroups[groupKey]
-                  const hasActiveItems = isGroupActive(item.items)
-                  
-                  return (
-                    <Collapsible 
-                      key={item.title} 
-                      open={isOpen} 
-                      onOpenChange={() => toggleGroup(groupKey)}
+              {ideas.map((i) => {
+                const slug = encodeURIComponent(i.text.trim().replace(/\s+/g, '-'))
+                const url = `/ideas/${slug}/deconstruct`
+                return (
+                  <SidebarMenuItem key={i.id}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={currentPath.startsWith(`/ideas/${slug}`)}
+                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
                     >
-                      <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton 
-                            className={`data-[state=open]:bg-sidebar-accent w-full ${collapsed ? 'justify-center' : 'justify-between'}`}
-                            isActive={hasActiveItems}
-                          >
-                            <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-                              <item.icon className="w-4 h-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </div>
-                            {!collapsed && (
-                              <ChevronRight 
-                                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
-                              />
-                            )}
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        {!collapsed && (
-                          <CollapsibleContent>
-                            <SidebarMenuSub>
-                              {item.items.map((subItem) => (
-                                <SidebarMenuSubItem key={subItem.title}>
-                                  <SidebarMenuSubButton 
-                                    isActive={isModuleActive(subItem.module)}
-                                    className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary"
-                                    onClick={() => handleNavigateToModule(subItem.module)}
-                                  >
-                                    {subItem.title}
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              ))}
-                            </SidebarMenuSub>
-                          </CollapsibleContent>
-                        )}
-                      </SidebarMenuItem>
-                    </Collapsible>
-                  )
-                }
-                
-                return null
+                      <NavLink to={url} className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                        <FileText className="w-4 h-4" />
+                        {!collapsed && <span className="truncate max-w-[140px]" title={i.text}>{i.text}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
               })}
+              {ideas.length === 0 && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/ideas" className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                      <Plus className="w-4 h-4" />
+                      {!collapsed && <span>Start a new idea</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
