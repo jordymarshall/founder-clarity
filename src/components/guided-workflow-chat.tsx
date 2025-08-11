@@ -228,6 +228,21 @@ export function GuidedWorkflowChat() {
   const currentStep = steps[stepIndex] ?? steps[0];
   const atLastStep = stepIndex >= steps.length - 1;
 
+  // Gate progression: require Deconstruction to be visible and populated before moving on
+  const canProceed = React.useMemo(() => {
+    if (currentStep.id === "deconstruct") {
+      const hasAnyBlocks = Array.isArray(deconstructBlocks) && deconstructBlocks.length > 0;
+      const hasDraft = !!initialHypothesis && (
+        (initialHypothesis.problem?.length ?? 0) +
+        (initialHypothesis.customerSegments?.length ?? 0) +
+        (initialHypothesis.existingAlternatives?.length ?? 0) +
+        (initialHypothesis.jobToBeDone?.length ?? 0)
+      ) > 0;
+      return hasEmbed("deconstruct") && (hasAnyBlocks || hasDraft);
+    }
+    return true;
+  }, [currentStep.id, deconstructBlocks, initialHypothesis, messages]);
+
   // Ensure the current step's question appears as part of the chat timeline
   useEffect(() => {
     if (!atIntro) {
@@ -244,6 +259,18 @@ export function GuidedWorkflowChat() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex, atIntro, currentStep.id, messages]);
+
+  // Safety: If somehow we skipped Deconstruction, force it as the first step
+  useEffect(() => {
+    if (!atIntro && stepIndex > 0 && !hasEmbed('deconstruct')) {
+      setStepIndex(0);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: 'deconstruct' } },
+      ]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [atIntro, stepIndex]);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -362,7 +389,7 @@ export function GuidedWorkflowChat() {
               <Button
                 size="sm"
                 onClick={goNext}
-                disabled={isWorking}
+                disabled={isWorking || !canProceed}
                 aria-label="Next"
               >
                 {atLastStep ? "Finish" : "Next"} <ChevronRight className="h-4 w-4 ml-1" />
