@@ -41,10 +41,23 @@ function usePersistentState<T>(key: string, initial: T) {
 export function GuidedWorkflowChat() {
   const [idea, setIdea] = usePersistentState<string>("guided.idea", "");
   const [stepIndex, setStepIndex] = usePersistentState<number>("guided.stepIndex", 0);
-  const [messages, setMessages] = usePersistentState<ChatMessage[]>("guided.messages", []);
+  // Initialize messages with welcome prompts to avoid duplicate inserts in React StrictMode
+  const initialMessages = useMemo<ChatMessage[]>(() => ([
+    { id: crypto.randomUUID(), role: "coach", content: "Welcome! I’ll guide you through the validation workflow, step by step." },
+    { id: crypto.randomUUID(), role: "coach", content: "First, what’s the name of the idea you’re working on?" },
+  ]), []);
+  const [messages, setMessages] = usePersistentState<ChatMessage[]>("guided.messages", initialMessages);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isSendingRef = useRef(false);
 
+  const appendCoach = (content: string) => {
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.role === "coach" && last.content === content) return prev; // dedupe identical consecutive coach msgs
+      return [...prev, { id: crypto.randomUUID(), role: "coach", content }];
+    });
+  };
   const steps: Step[] = useMemo(() => [
     {
       id: "deconstruct",
@@ -72,16 +85,7 @@ export function GuidedWorkflowChat() {
     },
   ], []);
 
-  // Initial welcome and idea capture
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        { id: crypto.randomUUID(), role: "coach", content: "Welcome! I’ll guide you through the validation workflow, step by step." },
-        { id: crypto.randomUUID(), role: "coach", content: "First, what’s the name of the idea you’re working on?" },
-      ]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Initial messages are provided via initial state to avoid StrictMode duplicate inserts
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -92,7 +96,9 @@ export function GuidedWorkflowChat() {
 
   const sendMessage = () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || isSendingRef.current) return;
+    isSendingRef.current = true;
+
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
@@ -100,41 +106,24 @@ export function GuidedWorkflowChat() {
     if (atIntro) {
       // First answer sets the idea name
       setIdea(text);
-      const coachAck: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "coach",
-        content: `Great – we’ll call it “${text}”. Let’s start with ${steps[0].title}.`,
-      };
-      setMessages((prev) => [...prev, coachAck]);
+      appendCoach(`Great – we’ll call it “${text}”. Let’s start with ${steps[0].title}.`);
       setStepIndex(0);
     } else {
       // Simple echo/acknowledgement
-      const coachAck: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "coach",
-        content: "Noted. When you’re ready, continue to the next step.",
-      };
-      setMessages((prev) => [...prev, coachAck]);
+      appendCoach("Noted. When you’re ready, continue to the next step.");
     }
+
+    // Release re-entrancy lock
+    setTimeout(() => { isSendingRef.current = false; }, 0);
   };
 
   const goNext = () => {
     if (stepIndex < steps.length - 1) {
       const next = stepIndex + 1;
       setStepIndex(next);
-      const coachMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "coach",
-        content: `Moving to ${steps[next].title}. ${steps[next].question}`,
-      };
-      setMessages((prev) => [...prev, coachMsg]);
+      appendCoach(`Moving to ${steps[next].title}. ${steps[next].question}`);
     } else {
-      const coachMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "coach",
-        content: "You’ve reached the end of the guided flow. Great work!",
-      };
-      setMessages((prev) => [...prev, coachMsg]);
+      appendCoach("You’ve reached the end of the guided flow. Great work!");
     }
   };
 
@@ -142,12 +131,7 @@ export function GuidedWorkflowChat() {
     if (stepIndex > 0) {
       const prevIndex = stepIndex - 1;
       setStepIndex(prevIndex);
-      const coachMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "coach",
-        content: `Back to ${steps[prevIndex].title}.` ,
-      };
-      setMessages((prev) => [...prev, coachMsg]);
+      appendCoach(`Back to ${steps[prevIndex].title}.`);
     }
   };
 
@@ -161,7 +145,7 @@ export function GuidedWorkflowChat() {
           {idea && <span className="ml-auto text-xs text-muted-foreground">Idea: {idea}</span>}
         </header>
 
-        <ScrollArea className="h-[360px] p-4" ref={scrollRef as any}>
+        <ScrollArea className="h-[360px] p-4" ref={scrollRef}>
           <div className="space-y-3">
             {messages.map((m) => (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
