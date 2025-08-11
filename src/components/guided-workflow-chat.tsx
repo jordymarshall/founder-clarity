@@ -47,6 +47,7 @@ export function GuidedWorkflowChat() {
     { id: crypto.randomUUID(), role: "coach", content: "First, what’s the name of the idea you’re working on?" },
   ]), []);
   const [messages, setMessages] = usePersistentState<ChatMessage[]>("guided.messages", initialMessages);
+  const [answers, setAnswers] = usePersistentState<Record<string, string>>("guided.answers", {});
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
@@ -130,8 +131,16 @@ export function GuidedWorkflowChat() {
       setStepIndex(0);
       appendCoach(steps[0].question);
     } else {
-      // Simple echo/acknowledgement
-      appendCoach("Noted. When you’re ready, continue to the next step.");
+      // Save answer for current step and auto-advance
+      setAnswers((prev) => ({ ...prev, [currentStep.id]: text }));
+      if (stepIndex < steps.length - 1) {
+        const next = stepIndex + 1;
+        appendCoach(`Got it. Moving to ${steps[next].title}.`);
+        setStepIndex(next);
+        appendCoach(steps[next].question);
+      } else {
+        appendCoach("Got it. You’ve completed the guided flow. Great work!");
+      }
     }
 
     // Release re-entrancy lock
