@@ -304,7 +304,7 @@ export function DeconstructCanvas({
       conclusion?: string;
     };
   } | null>(null);
-  const isLoading = !initialData || blocks.length === 0;
+  const isLoading = blocks.length === 0;
 
   // Seed with initialData once
   React.useEffect(() => {

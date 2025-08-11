@@ -8,6 +8,7 @@ import { InvestigationCanvas } from "@/components/investigation-canvas";
 import { EvidenceTab } from "@/components/evidence-tab";
 import { SynthesisCanvas } from "@/components/synthesis-canvas";
 import { InterviewUpload } from "@/components/interview-upload";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatMessage {
   id: string;
@@ -54,6 +55,14 @@ export function GuidedWorkflowChat() {
   const isSendingRef = useRef(false);
 
   const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
+  const [initialHypothesis, setInitialHypothesis] = useState<{
+    problem?: string[];
+    existingAlternatives?: string[];
+    customerSegments?: string[];
+    earlyAdopters?: string[];
+    jobToBeDone?: string[];
+  } | null>(null);
+  const [isWorking, setIsWorking] = useState(false);
   const hypothesisFromDeconstruction = useMemo(() => {
     const get = (cat: string) =>
       deconstructBlocks
@@ -89,6 +98,7 @@ export function GuidedWorkflowChat() {
       render: (i) => (
         <DeconstructCanvas
           idea={i || "Untitled Idea"}
+          initialData={initialHypothesis || undefined}
           onBlocksChange={setDeconstructBlocks}
         />
       ),
@@ -111,7 +121,13 @@ export function GuidedWorkflowChat() {
       id: "interview",
       title: "Interview script",
       question: "Now, generate your interview script to run problem discovery conversations.",
-      render: (i) => <InvestigationCanvas idea={i || "Untitled Idea"} />,
+      render: (i) => <InvestigationCanvas 
+        idea={i || "Untitled Idea"}
+        initialCustomerSegment={hypothesisFromDeconstruction.customerSegment.content?.[0]?.text}
+        initialProblem={hypothesisFromDeconstruction.coreProblem.content?.[0]?.text}
+        initialAlternatives={hypothesisFromDeconstruction.existingAlternatives.content?.[0]?.text}
+        initialJTBD={hypothesisFromDeconstruction.jobToBeDone.content?.[0]?.text}
+      />,
     },
     {
       id: "upload",
@@ -133,6 +149,36 @@ export function GuidedWorkflowChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Seed Deconstruction via AI when idea is set
+  useEffect(() => {
+    const run = async () => {
+      if (!idea || initialHypothesis || isWorking) return;
+      try {
+        setIsWorking(true);
+        appendCoach("I’m drafting your hypothesis canvas based on your idea…");
+        const { data, error } = await supabase.functions.invoke('initialize-idea', { body: { idea } });
+        if (error) {
+          console.error('initialize-idea error', error);
+          appendCoach("Couldn’t auto-draft the canvas right now. You can still add insights manually.");
+          return;
+        }
+        const d = data?.data || {};
+        setInitialHypothesis({
+          problem: d.problem || [],
+          existingAlternatives: d.existingAlternatives || [],
+          customerSegments: d.customerSegments || [],
+          earlyAdopters: d.earlyAdopters || [],
+          jobToBeDone: d.jobToBeDone || [],
+        });
+        appendCoach("Draft ready. Review/edit the canvas, then type ‘next’ or click Next.");
+      } finally {
+        setIsWorking(false);
+      }
+    };
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idea, initialHypothesis, isWorking]);
+
   const atIntro = idea.trim().length === 0;
   const currentStep = steps[stepIndex] ?? steps[0];
 
@@ -149,7 +195,7 @@ export function GuidedWorkflowChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const text = input.trim();
     if (!text || isSendingRef.current) return;
     isSendingRef.current = true;
@@ -158,26 +204,46 @@ export function GuidedWorkflowChat() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
 
+    const cmd = text.toLowerCase();
+    if (cmd === 'next') { isSendingRef.current = false; return goNext(); }
+    if (cmd === 'back') { isSendingRef.current = false; return goBack(); }
+    if (cmd === 'reset') { isSendingRef.current = false; return resetFlow(); }
+
     if (atIntro) {
-      // First answer sets the idea name
       setIdea(text);
       appendCoach(`Great – we’ll call it “${text}”. Let’s start with ${steps[0].title}.`);
       setStepIndex(0);
       appendCoach(steps[0].question);
-    } else {
-      // Save answer for current step and auto-advance
-      setAnswers((prev) => ({ ...prev, [currentStep.id]: text }));
-      if (stepIndex < steps.length - 1) {
-        const next = stepIndex + 1;
-        appendCoach(`Got it. Moving to ${steps[next].title}.`);
-        setStepIndex(next);
-        appendCoach(steps[next].question);
-      } else {
-        appendCoach("Got it. You’ve completed the guided flow. Great work!");
+    } else if (currentStep.id === 'deconstruct') {
+      // Ask AI to refine the hypothesis draft; keep user on this step
+      try {
+        if (!isWorking) {
+          setIsWorking(true);
+          appendCoach("Refining your hypothesis with AI…");
+          const { data, error } = await supabase.functions.invoke('initialize-idea', { body: { idea } });
+          if (!error && data?.data) {
+            const d = data.data;
+            setInitialHypothesis({
+              problem: d.problem || [],
+              existingAlternatives: d.existingAlternatives || [],
+              customerSegments: d.customerSegments || [],
+              earlyAdopters: d.earlyAdopters || [],
+              jobToBeDone: d.jobToBeDone || [],
+            });
+            appendCoach("Updated the canvas draft. Edit anything that looks off, then type ‘next’. ");
+          } else {
+            appendCoach("Couldn’t refine right now. Continue editing manually and type ‘next’ when ready.");
+          }
+        }
+      } finally {
+        setIsWorking(false);
       }
+    } else {
+      // Record answer without auto-advancing; user controls navigation
+      setAnswers((prev) => ({ ...prev, [currentStep.id]: text }));
+      appendCoach("Got it. Continue when ready or type ‘next’.");
     }
 
-    // Release re-entrancy lock
     setTimeout(() => { isSendingRef.current = false; }, 0);
   };
 
@@ -252,7 +318,8 @@ export function GuidedWorkflowChat() {
               <h2 className="text-sm font-medium">Step {stepIndex + 1} of {steps.length}: {currentStep.title}</h2>
               <p className="text-xs text-muted-foreground">Complete this step, then continue.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {isWorking && <span className="text-xs text-muted-foreground">AI working…</span>}
               <Button variant="secondary" size="sm" onClick={goBack} disabled={stepIndex === 0} aria-label="Previous step">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
