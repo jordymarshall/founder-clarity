@@ -34,7 +34,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { IdeaSelectDialog } from "@/components/idea-select-dialog"
 
 const mainItems = [
-  { title: "Ideas Hub", url: "/", icon: Home },
+  { title: "Ideas Hub", url: "/ideas", icon: Home },
   { title: "Guided Workflow", url: "/coach", icon: MessageSquare },
 ]
 
@@ -91,7 +91,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
           aria-label="Go to Ideas Hub"
           onClick={() => {
             window.dispatchEvent(new Event('open-ideas-hub'))
-            navigate('/')
+            navigate('/ideas')
           }}
         >
           <div className="w-7 h-7 bg-sidebar-primary rounded flex items-center justify-center">

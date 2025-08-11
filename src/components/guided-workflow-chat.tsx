@@ -58,6 +58,13 @@ export function GuidedWorkflowChat() {
       return [...prev, { id: crypto.randomUUID(), role: "coach", content }];
     });
   };
+
+  const resetFlow = () => {
+    setIdea("");
+    setStepIndex(0);
+    setMessages(initialMessages);
+    isSendingRef.current = false;
+  };
   const steps: Step[] = useMemo(() => [
     {
       id: "deconstruct",
@@ -142,7 +149,10 @@ export function GuidedWorkflowChat() {
         <header className="flex items-center gap-2 p-4 border-b">
           <Sparkles className="w-4 h-4 text-muted-foreground" />
           <h2 className="text-sm font-medium">Coach</h2>
-          {idea && <span className="ml-auto text-xs text-muted-foreground">Idea: {idea}</span>}
+          <div className="ml-auto flex items-center gap-2">
+            {idea && <span className="text-xs text-muted-foreground">Idea: {idea}</span>}
+            <Button variant="ghost" size="sm" onClick={resetFlow} aria-label="Reset coach">Reset</Button>
+          </div>
         </header>
 
         <ScrollArea className="h-[360px] p-4" ref={scrollRef}>

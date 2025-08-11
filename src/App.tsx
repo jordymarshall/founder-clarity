@@ -28,6 +28,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<ProtectedRoute><Coach /></ProtectedRoute>} />
+            <Route path="/ideas" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/auth" element={<Auth />} />
 
             {/* Idea-agnostic (legacy) routes */}
