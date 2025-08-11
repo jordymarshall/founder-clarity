@@ -101,6 +101,19 @@ export function GuidedWorkflowChat() {
   const atIntro = idea.trim().length === 0;
   const currentStep = steps[stepIndex] ?? steps[0];
 
+  // Ensure the current step's question appears as part of the chat timeline
+  useEffect(() => {
+    if (!atIntro) {
+      const hasQuestion = messages.some(
+        (m) => m.role === "coach" && m.content === currentStep.question
+      );
+      if (!hasQuestion) {
+        appendCoach(currentStep.question);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex]);
+
   const sendMessage = () => {
     const text = input.trim();
     if (!text || isSendingRef.current) return;
@@ -115,6 +128,7 @@ export function GuidedWorkflowChat() {
       setIdea(text);
       appendCoach(`Great – we’ll call it “${text}”. Let’s start with ${steps[0].title}.`);
       setStepIndex(0);
+      appendCoach(steps[0].question);
     } else {
       // Simple echo/acknowledgement
       appendCoach("Noted. When you’re ready, continue to the next step.");
@@ -139,6 +153,7 @@ export function GuidedWorkflowChat() {
       const prevIndex = stepIndex - 1;
       setStepIndex(prevIndex);
       appendCoach(`Back to ${steps[prevIndex].title}.`);
+      appendCoach(steps[prevIndex].question);
     }
   };
 
@@ -165,14 +180,6 @@ export function GuidedWorkflowChat() {
               </div>
             ))}
 
-            {/* Prompt for current step */}
-            {!atIntro && (
-              <div className="flex justify-start">
-                <div className="max-w-[320px] rounded px-3 py-2 text-sm bg-muted text-foreground mr-8">
-                  {currentStep.question}
-                </div>
-              </div>
-            )}
           </div>
         </ScrollArea>
 
