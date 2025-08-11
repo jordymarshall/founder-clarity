@@ -7,6 +7,7 @@ import { DeconstructCanvas } from "@/components/deconstruct-canvas";
 import { InvestigationCanvas } from "@/components/investigation-canvas";
 import { EvidenceTab } from "@/components/evidence-tab";
 import { SynthesisCanvas } from "@/components/synthesis-canvas";
+import { InterviewUpload } from "@/components/interview-upload";
 
 interface ChatMessage {
   id: string;
@@ -52,6 +53,20 @@ export function GuidedWorkflowChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
 
+  const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
+  const hypothesisFromDeconstruction = useMemo(() => {
+    const get = (cat: string) =>
+      deconstructBlocks
+        .filter((b: any) => b.category === cat)
+        .map((b: any) => ({ text: b.content }));
+    return {
+      customerSegment: { content: get('segments') },
+      coreProblem: { content: get('problem') },
+      jobToBeDone: { content: get('job-to-be-done') },
+      existingAlternatives: { content: get('alternatives') },
+    };
+  }, [deconstructBlocks]);
+
   const appendCoach = (content: string) => {
     setMessages((prev) => {
       const last = prev[prev.length - 1];
@@ -71,19 +86,38 @@ export function GuidedWorkflowChat() {
       id: "deconstruct",
       title: "Deconstruction",
       question: "Let’s deconstruct the problem space. What problem are you tackling and for whom?",
-      render: (i) => <DeconstructCanvas idea={i || "Untitled Idea"} />,
+      render: (i) => (
+        <DeconstructCanvas
+          idea={i || "Untitled Idea"}
+          onBlocksChange={setDeconstructBlocks}
+        />
+      ),
     },
     {
-      id: "discovery",
-      title: "Discovery",
-      question: "Great. Now let’s shape your customer discovery approach and interview plan.",
+      id: "find-people",
+      title: "Find relevant people",
+      question: "Based on your deconstruction, let’s find the right people to talk to. I’ll generate criteria and you can run searches.",
+      render: (i) => (
+        <EvidenceTab
+          idea={i || "Untitled Idea"}
+          customerSegment={hypothesisFromDeconstruction.customerSegment}
+          coreProblem={hypothesisFromDeconstruction.coreProblem}
+          jobToBeDone={hypothesisFromDeconstruction.jobToBeDone}
+          existingAlternatives={hypothesisFromDeconstruction.existingAlternatives}
+        />
+      ),
+    },
+    {
+      id: "interview",
+      title: "Interview script",
+      question: "Now, generate your interview script to run problem discovery conversations.",
       render: (i) => <InvestigationCanvas idea={i || "Untitled Idea"} />,
     },
     {
-      id: "evidence",
-      title: "Evidence",
-      question: "Time to gather evidence. Define targets and run searches.",
-      render: (i) => <EvidenceTab idea={i || "Untitled Idea"} />,
+      id: "upload",
+      title: "Upload notes/transcripts",
+      question: "After your interviews, upload notes or paste transcripts so we can synthesize.",
+      render: (i) => <InterviewUpload idea={i || "Untitled Idea"} />,
     },
     {
       id: "synthesis",
@@ -91,7 +125,7 @@ export function GuidedWorkflowChat() {
       question: "Finally, synthesize what you’ve learned into patterns and insights.",
       render: () => <SynthesisCanvas />,
     },
-  ], []);
+  ], [hypothesisFromDeconstruction]);
 
   // Initial messages are provided via initial state to avoid StrictMode duplicate inserts
 
