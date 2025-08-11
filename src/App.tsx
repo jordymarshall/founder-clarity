@@ -16,6 +16,7 @@ import Research from "./pages/Research";
 import Validation from "./pages/Validation";
 import Settings from "./pages/Settings";
 import Design from "./pages/Design";
+import Coach from "./pages/Coach";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/ideas/:ideaSlug/design" element={<ProtectedRoute><Design /></ProtectedRoute>} />
 
             {/* Other pages */}
+            <Route path="/coach" element={<ProtectedRoute><Coach /></ProtectedRoute>} />
             <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
             <Route path="/validation" element={<ProtectedRoute><Validation /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

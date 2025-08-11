@@ -35,6 +35,7 @@ import { IdeaSelectDialog } from "@/components/idea-select-dialog"
 
 const mainItems = [
   { title: "Ideas Hub", url: "/", icon: Home },
+  { title: "Guided Workflow", url: "/coach", icon: MessageSquare },
 ]
 
 const searchItem = { title: "Search", icon: Search }
