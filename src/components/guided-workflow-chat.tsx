@@ -58,7 +58,14 @@ export function GuidedWorkflowChat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const isSendingRef = useRef(false);
 
-  const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
+useEffect(() => {
+  if (initialIdea && !idea) {
+    setIdea(initialIdea);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [initialIdea]);
+
+const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
   const [initialHypothesis, setInitialHypothesis] = useState<{
     problem?: string[];
     existingAlternatives?: string[];
@@ -381,6 +388,18 @@ export function GuidedWorkflowChat() {
           { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: steps[prevIndex].id } },
         ]);
       }
+    }
+  };
+
+  const jumpTo = (index: number) => {
+    if (index < 0 || index >= steps.length) return;
+    setStepIndex(index);
+    appendCoach(`Jumped to ${steps[index].title}. ${steps[index].question}`);
+    if (!hasEmbed(steps[index].id)) {
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'coach', content: '', embed: { kind: steps[index].id } },
+      ]);
     }
   };
 

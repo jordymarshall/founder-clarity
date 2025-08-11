@@ -17,6 +17,7 @@ import Validation from "./pages/Validation";
 import Settings from "./pages/Settings";
 import Design from "./pages/Design";
 import Coach from "./pages/Coach";
+import IdeaCoach from "./pages/IdeaCoach";
 const queryClient = new QueryClient();
 
 const App = () => (

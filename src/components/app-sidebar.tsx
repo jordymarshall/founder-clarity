@@ -157,7 +157,7 @@ export function AppSidebar({ onSearchClick }: { onSearchClick?: () => void }) {
             <SidebarMenu>
               {ideas.map((i) => {
                 const slug = encodeURIComponent(i.text.trim().replace(/\s+/g, '-'))
-                const url = `/ideas/${slug}/deconstruct`
+                const url = `/ideas/${slug}/coach`
                 return (
                   <SidebarMenuItem key={i.id}>
                     <SidebarMenuButton

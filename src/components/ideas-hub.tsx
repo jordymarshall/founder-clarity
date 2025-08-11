@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRight, Archive, Plus } from 'lucide-react';
@@ -10,12 +11,16 @@ interface IdeasHubProps {
 
 export function IdeasHub({ onInvestigate }: IdeasHubProps) {
   const { ideas, addIdea, removeIdea } = useIdeas();
+  const navigate = useNavigate();
   const [newIdea, setNewIdea] = useState('');
 
   const handleAddIdea = () => {
-    if (!newIdea.trim()) return;
-    const idea = addIdea(newIdea);
+    const text = newIdea.trim();
+    if (!text) return;
+    const idea = addIdea(text);
+    const slug = encodeURIComponent(idea.text.trim().replace(/\s+/g, '-'));
     setNewIdea('');
+    navigate(`/ideas/${slug}/coach`);
   };
 
   const handleEnhanceIdea = (ideaId: string) => {
