@@ -43,16 +43,18 @@ function usePersistentState<T>(key: string, initial: T) {
   return [state, setState] as const;
 }
 
-export function GuidedWorkflowChat() {
-  const [idea, setIdea] = usePersistentState<string>("guided.idea", "");
-  const [stepIndex, setStepIndex] = usePersistentState<number>("guided.stepIndex", 0);
+export function GuidedWorkflowChat({ initialIdea, storageKeyPrefix }: { initialIdea?: string; storageKeyPrefix?: string }) {
+  const prefix = storageKeyPrefix ?? "guided";
+  const k = (s: string) => `${prefix}.${s}`;
+  const [idea, setIdea] = usePersistentState<string>(k("idea"), "");
+  const [stepIndex, setStepIndex] = usePersistentState<number>(k("stepIndex"), 0);
   // Initialize messages with welcome prompts to avoid duplicate inserts in React StrictMode
   const initialMessages = useMemo<ChatMessage[]>(() => ([
     { id: crypto.randomUUID(), role: "coach", content: "Welcome! I’ll guide you through the validation workflow, step by step." },
     { id: crypto.randomUUID(), role: "coach", content: "First, what’s the name of the idea you’re working on?" },
   ]), []);
-  const [messages, setMessages] = usePersistentState<ChatMessage[]>("guided.messages", initialMessages);
-  const [answers, setAnswers] = usePersistentState<Record<string, string>>("guided.answers", {});
+  const [messages, setMessages] = usePersistentState<ChatMessage[]>(k("messages"), initialMessages);
+  const [answers, setAnswers] = usePersistentState<Record<string, string>>(k("answers"), {});
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -408,6 +410,21 @@ const [deconstructBlocks, setDeconstructBlocks] = useState<any[]>([]);
       <header className="flex items-center gap-2 p-4 border-b">
         <Sparkles className="w-4 h-4 text-muted-foreground" />
         <h2 className="text-sm font-medium">Coach</h2>
+        {!atIntro && (
+          <nav className="flex gap-1 mx-2 overflow-x-auto" aria-label="Workflow steps">
+            {steps.map((s, i) => (
+              <Button
+                key={s.id}
+                variant={i === stepIndex ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => jumpTo(i)}
+                aria-label={`Go to ${s.title}`}
+              >
+                {i + 1}. {s.title}
+              </Button>
+            ))}
+          </nav>
+        )}
         <div className="ml-auto flex items-center gap-2">
           {idea && <span className="text-xs text-muted-foreground">Idea: {idea}</span>}
           {isWorking && <span className="text-xs text-muted-foreground">AI working…</span>}
