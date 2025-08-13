@@ -14,13 +14,9 @@ interface CanvasSection {
 interface InvestigationCanvasProps {
   idea: string;
   onBack?: () => void;
-  initialCustomerSegment?: string;
-  initialProblem?: string;
-  initialAlternatives?: string;
-  initialJTBD?: string;
 }
 
-export function InvestigationCanvas({ idea, onBack, initialCustomerSegment, initialProblem, initialAlternatives, initialJTBD }: InvestigationCanvasProps) {
+export function InvestigationCanvas({ idea, onBack }: InvestigationCanvasProps) {
   const [showScript, setShowScript] = useState(false);
   const { toast } = useToast();
   const [sections, setSections] = useState<CanvasSection[]>([

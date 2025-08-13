@@ -40,7 +40,7 @@ async function fetchPerplexityForSection(idea: string, section: typeof sections[
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar-small-online',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           { role: 'system', content: 'Be precise and concise. Cite concrete products, roles, and contexts. No filler.' },
           { role: 'user', content: instructionsBySection[section] + '\n\n' + content }

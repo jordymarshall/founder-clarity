@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      insights: {
-        Row: {
-          created_at: string
-          id: string
-          idea_slug: string | null
-          rationale: string | null
-          score: number | null
-          sources: Json
-          structure: Json
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          idea_slug?: string | null
-          rationale?: string | null
-          score?: number | null
-          sources?: Json
-          structure?: Json
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          idea_slug?: string | null
-          rationale?: string | null
-          score?: number | null
-          sources?: Json
-          structure?: Json
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       interview_candidates: {
         Row: {
           apollo_id: string | null
@@ -141,77 +102,6 @@ export type Database = {
           status?: string
           title?: string | null
           twitter_url?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      interview_facts: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          interview_id: string
-          tags: string[]
-          type: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          interview_id: string
-          tags?: string[]
-          type: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          interview_id?: string
-          tags?: string[]
-          type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interview_facts_interview_id_fkey"
-            columns: ["interview_id"]
-            isOneToOne: false
-            referencedRelation: "interviews"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      interviews: {
-        Row: {
-          created_at: string
-          id: string
-          idea_slug: string | null
-          metadata: Json
-          title: string | null
-          transcript: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          idea_slug?: string | null
-          metadata?: Json
-          title?: string | null
-          transcript?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          idea_slug?: string | null
-          metadata?: Json
-          title?: string | null
-          transcript?: string | null
           updated_at?: string
           user_id?: string
         }
