@@ -99,8 +99,52 @@ serve(async (req) => {
 
     async function synthesizeSection(section: typeof sections[number], research: string, count: number): Promise<string[]> {
       const allowedUrls = Array.from(new Set((research.match(/https?:\/\/[^\s)\]]+/g) || []).slice(0, 25)));
-      const methodology = `Ground in our Startup Methodology: focus on customer progress (JTBD), Customer Forces (push, pull, inertia, friction), and avoid solution-speak.`;
-      const system = `You are a senior startup validation coach.\n- Apply Validation Masterclass & Startup Methodology: Lean Canvas, JTBD, Customer Forces (push, pull, inertia, friction).\n- If research is available, use ONLY facts explicitly present in the Inputs and Allowed sources URLs.\n- If no research but idea is clear, reason from domain knowledge and startup principles.\n- If idea is vague or incomplete, help brainstorm possibilities based on the name/keywords provided.\n- Return STRICT JSON object: { "items": string[] } and nothing else.`;
+      
+      const methodologyContext = `
+VALIDATION MASTERCLASS METHODOLOGY:
+
+CORE PRINCIPLES:
+- A startup's job is to search for truth and turn hypotheses into facts
+- Primary goal: Customer/Problem Fit by proving a problem is real and significant
+- Use Lean Canvas to capture beliefs about [CUSTOMER SEGMENTS] and [PROBLEM]
+- Jobs to be Done (JTBD): Ask "why" to understand underlying customer progress
+- Format: "Help [segment] [achieve progress] when [situation], so they can [desired outcome] without [major friction]"
+
+CUSTOMER FORCES CANVAS:
+- PUSH: What's pushing the customer away from their current situation?
+- PULL: What's pulling them toward a new solution?
+- INERTIA: What's keeping them stuck with the status quo?
+- FRICTION: What concerns/anxieties do they have about new solutions?
+
+INTERVIEW FRAMEWORK:
+- Learning Frame: "I'm trying to understand [specific challenge]"
+- Anchor: Recent specific example of the problem
+- Backstory: Work backward from the anchor to understand context
+- Experience: Work forward to understand attempted solutions and outcomes
+
+EVIDENCE PATTERNS:
+- Common Switching Trigger: What consistently motivates change
+- Common Existing Alternative: What they typically use now
+- Common Friction/Workarounds: Repeated pain points and hacks
+
+AVOID:
+- Solution-speak before validating the problem
+- Generic personas without specific triggers
+- Confirmation bias - seek disconfirming evidence
+- Building before validating demand ("sell-first" approach)
+`;
+
+      const system = `You are a senior startup validation coach trained in our comprehensive methodology.
+
+${methodologyContext}
+
+INSTRUCTIONS:
+- Apply the above methodology rigorously to generate insights
+- If research is available, use ONLY facts explicitly present in the Inputs and Allowed sources URLs
+- If no research but idea is clear, reason from domain knowledge and startup principles using the methodology
+- If idea is vague, help brainstorm possibilities based on the methodology framework
+- Focus on Customer Forces, JTBD, and evidence-based validation
+- Return STRICT JSON object: { "items": string[] } and nothing else.`;
 
       const jtbdGuidelines = section === 'jobToBeDone' ? `\n- Derive by LEVELING UP from listed existing alternatives to the underlying progress sought\n- Abstract away tools/solutions; focus on desired outcome, trigger/context, anxieties/habits\n- Use format: "Help [segment] [achieve progress] when [situation], so they can [desired outcome] without [major friction]"\n- Produce ONE single-line JTBD (<= 140 chars)` : '';
 
